@@ -1,0 +1,7 @@
+alias ls="ls -al"
+alias pl="pwd; ls"
+alias tell="whoami; hostname; pwd"
+alias dir="ls -l | grep ^d"
+alias lmar="ls -l | grep Mar"
+alias wpa="chmod a+w"
+alias d="df -h | awk '{print \$6}' | cut -c1-4"
