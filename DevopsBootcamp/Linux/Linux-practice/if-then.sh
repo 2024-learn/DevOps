@@ -32,14 +32,52 @@ else
     echo Today is definitely not Sunday
 fi
 
-# check the response then output
-echo What is your name?
-read name
-echo "Hello $name! Do you like working in IT? (y/n)"
-read like
-if [[ $like == y ]] || [[ $like == Y ]]
+# # check the response then output
+# echo What is your name?
+# read name
+# echo "Hello $name! Do you like working in IT? (y/n)"
+# read like
+# if [[ $like == y ]] || [[ $like == Y ]]
+# then
+#     echo You are a super cool guy
+# else
+#     echo But why though, join the cool kids
+# fi
+
+userGroup=phyllis
+if [ $userGroup == "phyllis" ]
 then
-    echo You are a super cool guy
+    echo "you can configure the server"
+elif [ $userGroup == "admin" ]
+then
+    echo "You have admin rights to configure the server"
 else
-    echo But why though, join the cool kids
+    echo "you do not not have the necessary permissions to configure this server"
 fi
+
+# provide the variable as a parameter
+userGroup=$1
+if [ "$userGroup" == "phyllis" ]
+then
+    echo "you can configure the server"
+elif [ "$userGroup" == "admin" ]
+then
+    echo "You have admin rights to configure the server"
+else
+    echo "you do not not have the necessary permissions to configure this server"
+fi
+
+
+configDir=$2
+if [ -d "$configDir" ]
+then
+    config_file=$(ls "$configDir")
+    echo -e "here are the config directory contents: \n$config_file"
+else
+    echo "$configdir not found. Creating directory"
+    new_config_file=$(mkdir -p "$configDir/newdir"; mkdir "$configDir/another_dir"; touch "$configDir/newfile.txt")
+    ls "$configDir"
+fi
+
+# to execute on the command line, pass in the variables, the first being for $1 and the second being for $2:
+# e.g ./if-then.sh admin configs

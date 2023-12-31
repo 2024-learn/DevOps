@@ -49,3 +49,9 @@ for username in `awk -F: '{print $1}' /etc/passwd`
 do
 echo "Username $((i++)) : $username" >> users.txt
 done
+
+
+for fruit in "kiwi","banana","apple","orange","bitter lemon","grapefruit"
+  do
+    echo $fruit
+  done

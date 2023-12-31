@@ -1,7 +1,7 @@
 # Linux Notes
 OS acts as the intermediary and translator between applications and the hardware.
 
-__OS tasks:__
+__OS Tasks:__
 -
  - Resource allocation and management
    - Process management
@@ -135,7 +135,7 @@ __Basic Commands__
 - `lscpu`: list info about CPU
 - `lsmem`: list info about memory
 
-__Installing software on Linux__
+__Installing Software on Linux__
 -
 - software package:
 - this a compressed archive, containing all the required files
@@ -328,4 +328,122 @@ __Pipes and Redirects__
 
 __Shell Scripting__
 -
+- shell: the program that interprets and executes the various commands that we type in the terminal and translates the command so that the OS kernel can understand it
+- basically, it is a command interpreter and interface between the user and the kernel
+- There are different shell interpretations
+  - sh (bourne shell) - /bin/sh
+    - used to be the default shell
+  - bash (bourne again shell) - /bin/bash
+    - improved version of sh
+    - default shell program for most UNIX like systems
+- zsh, csh, ksh ...etc
+- Shell and bash terms are often used interchangeably
+- bash is a shell program and a programming language
+  
+- Shebang: tells the OS which shell to use
+  - `#!/bin/bash` `#!/bin/sh` `#!/bin/zsh`
+  - it points to the absolute path of the interpreter of your shell
+- to execute `./<filename>`. this however will not work unless the file has executable permissions
+  - `sudo chmod +x <filename>`: will add executable permissions for everyone
+
+Basic concepts and syntax
+- variables:
+  - used to store data and can be referenced later
+  - note: There must be no spaces around the "=" sign
+- conditionals:
+  - allow you to alter the control flow of a program
+  - [...] built-in command: square brackets enclose expressions
+  - test if it is a directory `-d`. it is the shorthand notation for teh test command: if test -d "config" is the same.
+  
+- __File Test Operators__: test various properties associated with a file (ref: https://tldp.org/LDP/abs/html/fto.html)
+
+| Operator  |  Description                                                              |
+|-----------| --------------------------------------------------------------------------|
+| -b        | checks if file is a block special file                                    |
+| -c        | checks if file is a character special file/ character device              |
+| -d        | checks if the file is a directory                                         |
+| -e        | check if file exists                                                      |
+| -f        | checks if it's an ordinary file                                           |
+| -g        | checks if file has set group GID (SGID) bit set                           |
+| -h        | checks if file is a symbolic link                                         |
+| -k        | checks if file has its sticky bit set                                     |
+| -p        | checks if the file is a pipe                                              |
+| -t        | checks if file descriptor is open and associated with a terminal device   |
+| -u        | checks if file has a set user ID (SUID) bit set                           |
+| -r        | checks if file is readable                                                |
+| -w        | checks if the file is writable                                            |
+| -x        | checks if the file is executable                                          |
+| -s        | checks if file has a size greater than 0                                  |
+| -S        | checks if the file is a socket                                            |
+
+__Relational Operators__
+- works only for numeric values
+- will work to check relation between 10 and 20 as well as "10" and "20"
 - 
+| Operator  | Description                                                   |
+| --------- |---------------------------------------------------------------|
+| -eq       | checks if the value of 2 operands are equal or not            |
+| -ne       | checks if 2 operands are not equal, then condition is true    |
+| -gt       | checks if left operand is greater than the right              |
+| -lt       | checks if left operand is less than the right                 |
+| -ge       | checks if left operand is greater or equal to the right       |
+| -le       | checks if left operand is less or equal to the right          |
+
+__string operators__
+| Operator  | Description                                                                       |
+| --------- |-----------------------------------------------------------------------------------|
+| ==        | checks if the value of 2 operands are equal or not. if yes; true                  |
+| !=        | checks if 2 operands are not equal, if not equal; true                            |
+| -z        | checks if the given string operand size is zero, if zero length; true             |
+| -n        | checks if the given string operand size is non-zero; if non-zero length; true     |
+| __str__   | checks if __str__ is not empty string; if it's empty, the condition returns false |
+
+- Positional parameters
+  - Arguments passed to the script are processed in the same order in which they are sent
+  - the indexing of arguments starts at $1 to $9
+
+- `echo` lets you use the new line character `\n` to print a new line within the same output line if you use the `-e` option
+  - e.g. echo -e "Name\nAddress\nPhone Number"
+- ref: https://linuxhandbook.com/echo-newline-bash/
+
+- read all the parameters that the user passes in
+    - `$*`: represents all the arguments as a single string
+    - `$#`: represents the total number of parameters passed in
+- __loops in linux__
+- Enable you to execute a set of commands repeatedly
+  - there are different types of loops:
+    - __while__ loop:
+      - execute a set of commands repeatedly until some condition is matched
+      - `break` command: exits from a __for__, __while__, __select__, or __until__ loop
+      ```
+      while condition
+      do
+        statement(s) to be executes if command is true
+      done
+      ```
+    - __for__ loop: 
+      - ref: https://www.cyberciti.biz/faq/bash-for-loop/
+      - operates on a list of items
+      - repeats a set of commands for every item in the list
+      ```
+      for var in word1 word2
+        do
+            statement(s) to be executed for every word
+        done
+      ```
+    - __until__ loop: 
+      - refs: 
+      - https://phoenixnap.com/kb/bash-loop-until
+      - https://www.geeksforgeeks.org/bash-scripting-until-loop/
+      - https://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_03.html
+  
+    - __select__ loop
+      - refs:
+        - https://www.oreilly.com/library/view/shell-scripting-expert/9781118166321/c06-anchor-7.xhtml
+        - https://bash.cyberciti.biz/guide/Select_loop
+- use double prarenthesis for arithmetic operations or bash reads it as a string concatenation
+- $(( 2+4 ))
+- $(( $num1 + $num2 ))
+- bash has an alternative for the square brackets that we use for conditionals and __if__ expressions. [[ ... ]]
+- one of the advantages of using the double brackets is that you do not have to enclose the variable names in quotes
+  - e.g `if [ "$score" == "q"]` is the same as `if [[ $score == q ]]`

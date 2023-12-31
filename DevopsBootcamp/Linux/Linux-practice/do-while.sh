@@ -19,3 +19,19 @@ num=`expr $num - 1`
 count=`expr $count + 1`
 done
 echo $1 process is stopped!
+
+# use double prarenthesis for arithmetic operations or bash reads it as a string concatenation
+# $(( 2+4 ))
+# $(( $num1 + $num2 ))
+
+sum=0
+while true
+  do
+    read -p "enter a score: " score
+    if [ "$score" == "q" ]
+    then
+      break
+    fi
+    sum=$(($sum+$score))
+    echo "total score: $sum"
+  done
