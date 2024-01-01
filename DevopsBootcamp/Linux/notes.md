@@ -409,6 +409,7 @@ __string operators__
 - read all the parameters that the user passes in
     - `$*`: represents all the arguments as a single string
     - `$#`: represents the total number of parameters passed in
+    - `$?`: captures value returned by the last command
 - __loops in linux__
 - Enable you to execute a set of commands repeatedly
   - there are different types of loops:
@@ -441,9 +442,42 @@ __string operators__
       - refs:
         - https://www.oreilly.com/library/view/shell-scripting-expert/9781118166321/c06-anchor-7.xhtml
         - https://bash.cyberciti.biz/guide/Select_loop
-- use double prarenthesis for arithmetic operations or bash reads it as a string concatenation
+- use double prarentheses for arithmetic operations or bash reads it as a string concatenation
 - $(( 2+4 ))
 - $(( $num1 + $num2 ))
 - bash has an alternative for the square brackets that we use for conditionals and __if__ expressions. [[ ... ]]
 - one of the advantages of using the double brackets is that you do not have to enclose the variable names in quotes
   - e.g `if [ "$score" == "q"]` is the same as `if [[ $score == q ]]`
+   
+__Functions__
+- Enable you to break down the overall functionality of a script into smaller, logical code blocks
+```
+function func_name () {
+    list of commands
+}
+func_name
+```
+- this code block can then be referenced anywhere in the script multiple times
+-  you have to call/invoke the function for it to work
+-  
+-  pass parameters to a function: 
+   -  the parameters are passed in represented by $1, $2, etc.
+   -  best practices:
+      -  do not use too many parameters
+      -  apply the single responsibility principle: a function should only do one thing
+      -  declare variables with a meaningful name for positional paramerters within a function
+-  Returning values from functions:
+    - A return is a value that a function returns to the calling script or function when it completes its task. A return value can be any one of the four variable types: handle, integer, object, or string. The type of value your function returns depends largely on the task it performs.
+    - https://ioflood.com/blog/bash-function-return-value/
+    ```
+    function sum(){
+        total=$(($1+$2))
+        return $total
+    }
+    sum 2 10
+    result=$?
+    echo "the sum of 2 and 10 is: $result"
+    ```
+__Environment Variables__
+-
+- 
