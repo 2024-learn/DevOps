@@ -19,6 +19,16 @@ function func_name () {
 }
 func_name
 
+# return value from a function
+function sum() {
+    total=$(($1+$2))
+    return $total
+}
+sum 2 10
+result=$?
+echo $result
+echo ""
+
 # pass in parameters
 function create_file() {
     file_name=$1
@@ -28,7 +38,7 @@ function create_file() {
     then
         chmod u+x $file_name
         echo "file permissions for $file_name: "
-        echo -e ("#!/bin/bash\necho And with that, ladies and gentlemen, the 2023 season is over.\necho Happy New year, Phyllis!" > $file_name)
+        echo "#!/bin/bash\necho And with that, ladies and gentlemen, the 2023 season is over.\necho Happy New year, Phyllis!" > $file_name
         ls -l $file_name
         echo " "
         ./$file_name
@@ -40,11 +50,3 @@ create_file test.txt
 create_file test.yaml
 create_file test.sh true
 
-# return value from a function
-function sum() {
-    total=$(($1+$2))
-    return $total
-}
-sum 2 10
-result=$?
-echo $result
