@@ -28,7 +28,7 @@ function create_file() {
     then
         chmod u+x $file_name
         echo "file permissions for $file_name: "
-        echo "#!/bin/bash\necho And with that, ladies and gentlemen, the 2023 season is over.\necho Happy New year, Phyllis!" > $file_name
+        echo -e ("#!/bin/bash\necho And with that, ladies and gentlemen, the 2023 season is over.\necho Happy New year, Phyllis!" > $file_name)
         ls -l $file_name
         echo " "
         ./$file_name
