@@ -480,4 +480,135 @@ func_name
     ```
 __Environment Variables__
 -
+- key=value pairs
+- env. vars are available for the whole environment.
+- by convention, names are defined in uppercase
+- List all env vars: `printenv`
+- print specific env vars: `printenv <variable name>`
+  - e.g. `printenv USER`
+  - `printenv | grep USER`
+  - `echo $USER`
+- Use cases:
+  - storing sensitive data for an application
+  - make application more flexible, making it easier not to have to change application code in different envs.
+- Setting env. vars.
+    - `export DB_USERNAME=dbuser`
+    - `export DB_PASSWORD=secretpwdvalue`
+    - `export DB_NAME-mydb`
+- deleting env. vars:
+  - `unset <env. var name>`
+    - `unset DB_NAME`
+- Persisting env. vars
+  - __Shell specific configuration file__
+    - per-user shell configuration files
+    - e.g. if you are using Bash, you can declare the variables in the ~/.bashrc file
+    - variables set in this file are loaded whenever a bash login shell is entered
+    - in zsh it is ~/.zshrc
+    - after adding the variables, source the file to reload the system to load and recognize environment variables you just entered,.
+      - `source ~/.zshrc ` or `source ~/.bashrc` ...
+  - __System wide for all users:__
+    - in /etc/enviroment
+    - PATH environment variable:
+      - list of directories to executable files, separated by `;`
+      - Tells the shell which directories to search in for the executable in response to our executed command
+      - ref: https://www.tecmint.com/set-unset-environment-variables-in-linux/
+      - https://www.freecodecamp.org/news/how-to-set-an-environment-variable-in-linux/
+      - https://www.cyberciti.biz/faq/set-environment-variable-linux/
+  
+__Networking__
 - 
+- LAN, Switch Router, WAN, Gateway
+- __LAN:__ Local Area Network
+  - Collection of devices connected together in one physical location. eg. a home network, office building or a campus
+  - each device has a unique IP address
+  - Devices can communicate to each other on these IP addresses
+  - 32 bit value: 00000000 => 0
+  - 1 bit = 1 or 0: 11111111 => 255
+  - IP addresses can range from 0.0.0.0 to 255.255.255.255
+- __switch:__
+  - sits within the LAN
+  - facilitates the connection between all the devices within the LAN
+- __router:__
+  - sits between LAN and outside networks (WAN)- __Wide Area Network__
+  - it connects devices on the LAN and WAN
+  - Allows networked devices to access the internet
+- __gateway:__
+  - This is the IP address of the router
+- __subnet:__
+  - When a device sends communication to another device on the LAN? How does it know whether the device is within or outside the LAN?
+  - it knows because of the IP address of the target device
+  - Devices in the LAN belong to the same IP address range
+  - __subnet__ is a logical subdivision of an IP network
+  - __subnetting__ is the process of dividing a network into two or more networks
+  - __subnet mask__ dictates how many bits are fixed
+  - 1 octet/IP block = 8 bits
+  - Subnet sets the IP range
+  - Example of IP address range:
+    - 192.168.0.x: IP address (starting point)
+    - 255.255.255.0: subnet mask
+      - All IP addresses starting with 192.168.0.x belong to the same LAN
+
+    - 192.168.x.x: IP address
+    - 255.255.0.0: subnet mask
+      - All IP addresses starting with 192.168.x.x belong to the same LAN
+  - 255.255.0.0 - means that 16 bits are fixed
+  - 255.255.255.0 - means 24 bits are fixed
+  - value 255 fixates the Octet
+  - value 0 means free range
+  - subnet defines how many bits in the IP address are fixed making the rest of them flexible.
+  - __address ranges:__
+  - | starting IP   | subnet mask       | last IP address   | 
+    |---------------|-------------------|-------------------|
+    | 192.168.0.0   | 255.255.255.0     | 196.168.0.255     |
+    | 192.168.0.0   | 255.255.0.0       | 192.168.255.255   |
+  - __CIDR block:__
+  - CIDR = Classless Inter-Domain Routing
+    - 255.255.0.0   - means that 16 bits are fixed
+    - 255.255.255.0 - means 24 bits are fixed
+    - CIDR block would be written as: 
+        - 192.168.0.0/16 or 192.168.0.0/24
+        - where the numbers after the dash represent the number of bits that are fixed
+          - /16 bits are fixed
+          - /24 bits are fixed
+- __Recap__
+  -  We have a range of IP addresses that are available on the LAN
+  -  All devices in the LAN get a unique IP adress from that range
+  - When we send a request to an address within the LAN, the request will go to the switch and forward it to the device within the LAN.
+  - when we send a request to an address outside of the LAN, it will go to the internet through the router
+- Any device need three pieces of data for communication: IP address, subnet, gateway.
+- __Network Address Translation:__
+  - How to make sure IP address do not overlap from one LAN to another?
+  - IP addresses within LAN are not visible to the outside network or internet
+  - e.g. when interacting with social media, your device's private IP address does not reach the router. it is replaced by the router's IP address
+  - __NAT:__ key functionality of a router
+  - __Benefits of NAT:__
+    - Security and protetion of devices within the LAN
+    - Reuse IP addresses without conflicting with each other. So, 2 LANS can have the same IP address range within their LAN because they basically will not know about each other, hence no conflict.
+  - Limited number of IPv4 addresses:
+    - 4,294,967,296 : 256*256*256*256
+- __Firewall:__
+  - By default, a server is not accessible from outside the LAN
+  - __firewall__ is a set of rules that protect a network form unoauthoized access
+  - Using firewall rules, we can define which requests are allowed
+  - __port:__
+    - every device has a set of ports. You can allow specific ports and IP addresses.
+    - different applications listen on specific ports
+    - there are default or standard ports on many applications
+    - e.g web apps on port 80, mongodb on 27017, mysql 0n 3306, postgresQL on 5432...etc.
+    - You need a port for every application. and each port is unique in a device, so you cannot have two applications listening on the same port
+  - So, firewall allows device IP address at port to be accessed. This is also known as __port forwarding configuration__
+- __Domain Name Service (DNS):__
+  - ref: https://www.cloudflare.com/learning/dns/glossary/dns-root-server/
+  - Humans are better at rememebering words and names instead of numbers. Hence, the concept of mapping IP address to names was introduced
+  - However, the computer does not understand names, it understands numbers and IP addresses.
+  - Under the hood, that name is trnaslated into an IP address that the application is running on which your computer can send the request to. The service that does this translation of domain names into IP addresses is __DNS__.
+  - __How does DNS manage all these IP addresses?__
+    - ![DNS] (https://mykbhome.files.wordpress.com/2019/07/image-2.png)
+    - DNS uses a simple policy of dividing all these names into different domains or groups
+    - Domain names follow a hierarchical structure.
+    - __Root Domains:__ ref: https://www.iana.org/domains/root/servers
+    - Root servers are DNS nameservers that operate in the root zone. These servers can directly answer queries for records stored or cached within the root zone.
+    - ![list of root servers] (https://mykbhome.files.wordpress.com/2019/07/image-4.png)
+    - __Top Level Domains:__
+    - there are 6 original TLDs: .mil, .edu, .com, .org, .net, .gov
+    - 
