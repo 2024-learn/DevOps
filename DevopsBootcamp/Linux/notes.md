@@ -603,12 +603,12 @@ __Networking__
   - However, the computer does not understand names, it understands numbers and IP addresses.
   - Under the hood, that name is trnaslated into an IP address that the application is running on which your computer can send the request to. The service that does this translation of domain names into IP addresses is __DNS__.
   - __How does DNS manage all these IP addresses?__
-    - ![DNS] (https://mykbhome.files.wordpress.com/2019/07/image-2.png)
+    - ![DNS](https://mykbhome.files.wordpress.com/2019/07/image-2.png)
     - DNS uses a simple policy of dividing all these names into different domains or groups
     - Domain names follow a hierarchical structure.
     - __Root Domains:__ ref: https://www.iana.org/domains/root/servers
     - Root servers are DNS nameservers that operate in the root zone. These servers can directly answer queries for records stored or cached within the root zone.
-    - ![list of root servers] (https://mykbhome.files.wordpress.com/2019/07/image-4.png)
+    - ![list of root servers](https://mykbhome.files.wordpress.com/2019/07/image-4.png)
     - __Top Level Domains:__
     - there are 6 original TLDs: .mil, .edu, .com, .org, .net, .gov
     - 
