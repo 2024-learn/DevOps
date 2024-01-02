@@ -536,7 +536,7 @@ __Environment Variables__
      - 
  __Networking__
 -
-- LAN, Switch Router, WAN, Gateway
+- __LAN, Switch Router, WAN, Gateway__
 - __LAN:__ Local Area Network
  - Collection of devices connected together in one physical location. eg. a home network, office building or a campus
  - each device has a unique IP address
