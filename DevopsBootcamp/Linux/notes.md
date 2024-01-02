@@ -533,6 +533,7 @@ __Environment Variables__
      - ref: https://www.tecmint.com/set-unset-environment-variables-in-linux/
      - https://www.freecodecamp.org/news/how-to-set-an-environment-variable-in-linux/
      - https://www.cyberciti.biz/faq/set-environment-variable-linux/
+     - 
  __Networking__
 -
 - LAN, Switch Router, WAN, Gateway
@@ -565,7 +566,6 @@ __Environment Variables__
    - 192.168.0.x: IP address (starting point)
    - 255.255.255.0: subnet mask
      - All IP addresses starting with 192.168.0.x belong to the same LAN
-
 
    - 192.168.x.x: IP address
    - 255.255.0.0: subnet mask
@@ -670,6 +670,7 @@ __Environment Variables__
    - or you can also do a reverse check with `nslookup` command to show what domain name is attached to a specific IP address.
  - `ping`: basically checks whether a service or application is accessible
    - uses the ICMP protocol. Note: if the application is not pingable, it is not necessarily that the app is down/unavailable but that ICMP has been blocked by the firewall, likely for security reasons
+   - 
  __SSH (Secure Shell)__ ref: https://www.atlassian.com/git/tutorials/git-ssh
 -
 - SSH is a network protocol that gives users a secure way to access a computer over the internet
