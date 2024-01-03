@@ -1,0 +1,92 @@
+# Databases
+
+__Database Types:__
+-   
+- __Key Value Databases:__
+  - examples: Redis, Memcached, etcd from Kubernetes
+  - characteristics:
+    - Data is saved in key value pairs
+    - unique key
+    - no joins
+    - in-memory
+      - because they store data in memory instead of persisting it to the CPU, they are very fast when accessing the data. However, they cannot store much data for the same reason- limited storage. So they are not fit as a primary DB. Rather, they are used as a cache to enhance teh performance of a traditional DB
+      - They can also be used as a message queue
+- __Wide Column Databases:__
+  - examples: Cassandra, Apache HBase
+  - Key value DBs have a limited schema and a wide column database is a goog alternative
+  - Characteristics:
+    - A two-dimesional key-value store
+    - Data is saved in tables, rows and columnes
+    - Names and format can vary form row to row (schemaless)
+    - Queries similar to SQL
+  - Best for:
+    - Time- series data
+    - IoT records
+    - historical records
+  - advantage:
+    - scalable
+  - disadvantages:
+    - no joins
+    - limited compared to relational DB
+    - not fit to be a primary db
+- __Document Databases:__
+  - Examples: MongoDB, DynamoDB, CouchDB
+  - Characteristics:
+    - Data is stored in JSON like documents
+    - Schema-less
+    - No joins
+    - Denormalized- biffere chance of duplicating data
+  - Best for:
+    - Mobile Apps, Game Apps, CMS, Most apps
+    - faster to read becasue data is already grouped into a collection of all related information into one document
+    - easy to get started
+    - act as a primary database
+  - disadvantages:
+    - slower writes
+    - cannot be used by an app that needs to graph which requires frequent updates
+- __Relational Databases:__
+  - Examples: MySQL, Oracle, PostgreSQL
+  - characteristics:
+    - data is stored in tables, rows and columns
+    - schema (schema and data types need to be created first)
+    - normalized to avoid duplicated data
+    - most used in the industry.
+    - language: SQL(structured Query Language)
+  - Best for:
+    - can be used to structured data
+    - ACID
+    - easy to get started
+    - can be used primary database
+    - Great for banking transations due to ACID properties
+  - disadvantages:
+    - difficult to scale
+      - CockroachDB looks to solve the sacalability issues of most SQL DBs
+    - cannot be used for unstructured data
+  - __ACID:(Atomicity, Consitency, Isolation and Durability)__
+    - refs:
+      - https://www.mongodb.com/basics/acid-transactions
+      - https://www.ibm.com/docs/en/cics-ts/5.4?topic=processing-acid-properties-transactions
+    - No half changes are updated in the DB
+    - either all changes get applied or NONE
+  - Because relational or SQL databases are so popuplar, we often talk about SQL vs. No-SQL, meaning all the other database types, which are schema-less
+- __Graph Databases:__
+  - examples: Neo4j, DGraph
+  - characteristics:
+    - Data is stored as Nodes and Relationships instead of tables or documents
+    - Directly connect Entities
+    - Edges are the relationships/connectors
+  - Best for:
+    - Graphs
+    - detecting patterns in the application data and relations between records
+    - recommendation engines
+    - They are easier to query
+- __Search-Engine databases:__
+  - Examples: ElasticSearch, Solr
+  - characteristics:
+    - Dedicated to the search of data through massive entries
+    - optimized for dealing with data
+    - Full-text search in efficient and fast way
+    - uses an index/createsan index of words. So instead of searching the whole database, it will only search the index
+    - similar to document-oriented database
+  - Best for:
+    - usage of indexes
