@@ -1,0 +1,110 @@
+# GIT: 
+    ref: htpps://www.atlassian.com/git/tutorials/attlassian-git-cheatsheet
+ 
+- __git commands:__
+    - `git status`: status of your local git repo
+    - `git add`: promotes the file(s) to a staging area and moves files from untracked to tracked
+    - `git rm --cached <file>`: to unstage the file
+    - `git restore <file>`: to discard changes in the working directory
+    - `git commit`: commits the staged files to the local repo
+      - if you do git commit without the -m flag for message, it will open a file for you to enter and save the message before the commit is done
+      - __undoing commits:__
+        - `git reset --hard HEAD`: can be used to revert commits that are only in local, not yet in remote. This also allows you to name how many commits you would like to revert. eg.
+          - `git reset --hard HEAD~3`: will undo the last three commits in the local repo
+        - the `--HARD`: basically reverts teh commit and also discards the changes that were in the commit
+        - This can also be used to revert changes that have been pushed to the remote repo.
+          - `git reset --hard HEAD~1`
+          - `git push --force`: will overwrite the commit in the local repository
+          - ** This should not be done in master or develop branches. It should only be done when working alone in a branch**
+        - `git reset --soft`: help you not revert and discard the changes in the commit, if you were trying to work on those changes instead of discarding them.
+          - you can also add a flag to specify the number of changes you would like to restore: `git reset --soft HEAD~1`
+          - `reset --soft` is the default option so this can also be written as: `git reset HEAD~1`
+        - `git revert <commit hash>`: creates a new commit to revert the old commit's changes.
+          - it is the preferred alternative to `git reset <commit hash>` which removes the old commit
+      - __changing commits:__
+        - `git commit --amend`: To amend the last commit.
+    - `git log`: history of changes(commits) in the local repo
+      - this is important because each commit has a unique hash. If you noticed that an application or code no longer works since a few commits ago, we can go back to an earlier version of the code using that commit hash
+        - `git checkout <commit hash>` which puts you in a 'detached head' state
+        - You can create a new branch based on that previous code version and try to test and replicate a bug.
+        - to exit this 'detached Head' state, do a `git checkout <branch name>` to your previous branch to put you at the HEAD (current code version) of the branch again
+    - `git init` initiates a local repository
+      - `git init -b main` will initiate a local repo, checkout a branch called main
+    - `git remote add <name> <url>`: configures the remote repo in the local repo and connects the two.
+    - `git push -u origin main` pushes the code upstream from local repo with an alias "origin" to a remote repo named "main"
+      - `git push --set-upstream origin master`: if the current branch is "master" and there is no remote branch named master, to push the current branch and set the remote branch that you are pushing to to have the same name as the local branch. This is the same thing you do for any feature or bug fix branches that you have created in the local that are not in the remote
+      - when you create a feature/bugfix branch remotely, you have to create it off of the main/master branch. Then the codebase is created in the new branch. Locally, you have to pull these changes with a `git pull` command.
+    - `git branch -m main`: renames a branch into "main"
+    - `git branch -d <branch>` : delete a branch
+      - to delete a branch that has already been deleted remotely:
+        - `git checkout master`
+        - `git pull`; to make sure the code you have locally matches with the remote repo code
+        - `git branch -d <branch name>`: will not delete the branch locally
+    - `git config --global user.name "Phyllis L"`: configures the name of the person doing the commits, globally in the local repo
+    - `git config --global user.email "youremail.example.com"`: configures the email address, globally
+    - `git checkout <branch name>`: switch branches
+      - `git checkout -b <branch name>`: creates and switches to the new branch
+    - In case, the code you have in the remote repo is ahead of the code you have locally, you are bound to run into some errors, when you try to push the code. 
+      - You will need to do a `git pull`. This pulls the changes locally and creates a new commit that the remote branch got merged into the local branch. So now when you try to push again, it will be pushing both commits.
+      - This however gets tedious which is where `rebase` comes into play.
+        - `git pull -r` basically pulls the changes from the remote branch and then it stacks our changes on our commit on top of that, so there is no merge branch commit in between them.
+        - This results in a much cleaner project history
+    - __resolving merge conflicts:__
+      - Sometimes after you do a git pull rebase, another developer has edited the same code you are working on locally, creating a merge conflict.
+      - to resolve this, you need to identify the files that have conflicting code, collaborate with that developer on what the exact chnges should be. The conflicting code is usually marked with some none code like: ( <<<<< HEAD ====  >>>>> f6899f6d ). Delete the non code, correct the duplicated code with the agreed on code then add or remove the files with: `git add <conflicted files>` or `git rm <conflicted files>` and then run `git rebase --continue`. Finally, push the code as usual with `git push`.
+    - __.gitignore file:__
+      - Add .gitignore file to the root directory of your project
+      - It is used to exclude certain folders or files from being tracked by git. For example,
+        - certain code editors generate folders, like __*.idea*__ by intellij which is specific to your computer and does not need to be tracked
+        - build folders, where compiled code is located, like 
+          - __*build/**__ 
+          - __*node_modules/**__ ... etc.
+        - some OS specific files like MacOS creates __*.DS-Store*__ file which stores metadata about your local folder
+      - if the code had already been submitted with those folders, once you list those folders in the .git ignorefiles, you will notice that git lists them as modified beacuse it is set to track them
+        - you can remove them with: `git rm -r --cached <file names>`
+          - e.g. `git rm -r -cached .DS_Store`
+        - `git add <new changes>`
+        - `git commit -m <"Meaningful message">`
+        - `git push`
+    - __work in progress:__
+        - Sometimes you have to leave some work in progress and move to another branch eg. to do a hit fix on some other code. This however, will cause conflicts becasue the working tree is not clean. before you move into another branch, always stash the changes/or the work you have in progress in the working area.
+        - `git stash`: it takes the changes in the working area and it will hide them from being trackes, so to say....it saves current changes for later. then you can checkout master or checkout another branch from master
+        - to continue making changes in the branch you were wroking on earlier, then you need to checkout that branch and then unstash those changes so you can keep working on it. To do so, we run: `git stash pop`
+        - Another case for stashing is that you may make some changes and you notice that the code is no longer working as it is supposed to on code that you were not even working on. You might want to check if the changes in your code caused the other code to break. stashing would be a great way to accomplish this so that you can check if the code is going to work/was working without your changes. 
+    - `git merge`: can be used to pull changes from the master branch into your feature /bugfix branch.
+      - first make sure that the mocal master branch is up-to-date
+        - `git checkout master`
+        - `git pull`
+      - then you need to go back to the branch that you were working on: `git checkout bugfix/fixcode`
+      - to pull the code from the master branch and merge it into the bugfix or feature branch, you need to do a `git merge master` which is the source you are now pulling the code from.
+        - this will create a new commit
+      - you can then proceed to do a `git push`
+  
+- "Trunk based development"
+  - better for continuous integration/delivery
+  - pipeline is triggered whenever feature/bugfix code is merged into master
+  - deploying every single feature/bug fix and not waiting till the end of the sprint to deploy to the master branch (recommended)
+    - the ideal goal is to deploy changes on every merge
+- Feature driven development
+  - dev is an intermediary to master
+  - features/bugfix are collected in develop branch
+  - release once every sprint
+  - not recommended because the dev branch end up being the "work in progress" branch
+
+__Best pratices__
+-
+- Commit-related best practices:
+  - Use descriptive and meaningful commit messages
+  - Commit in relatively small chunks
+  - Commit only related work
+  - Adequately configure the commit authorship (name and email address) with git config
+  - Avoid very large deviations between local and remote repository.
+  - Keep your feature/bugfix branch up-to-date with remote master and/or develop branch. Pull often from remote git repository
+  - Branches shouldn’t be open for too long or master branch should be merged into yourfeature/bugfix branch often
+- Others:
+  - Don’t "git push" straight to main branch
+  - Use --force push carefully! Do NOT force push into master or develop branches orbetter only when working alone in a branch
+  - Create a separate branch for each feature or bugfix and name the branch withprefix “feature/xx” and “bugfix/xxx” respectively
+  - It is recommended that you delete branches in the remote repo as soon as the code is merged to avoid confusion that would result, otherwise.
+  - Do Code Reviews via Merge Requests/pull requests
+  - Use .gitignore file to ignore e.g. editor specific files, build folders
