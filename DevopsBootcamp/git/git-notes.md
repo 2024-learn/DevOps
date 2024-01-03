@@ -1,7 +1,8 @@
 # GIT: 
-    ref: htpps://www.atlassian.com/git/tutorials/attlassian-git-cheatsheet
+- ref: https://www.atlassian.com/git/tutorials/atlassian-git-cheatsheet
  
-- __git commands:__
+- __Git Commands:__
+  - 
     - `git status`: status of your local git repo
     - `git add`: promotes the file(s) to a staging area and moves files from untracked to tracked
     - `git rm --cached <file>`: to unstage the file
@@ -93,7 +94,7 @@
 
 __Best pratices__
 -
-- Commit-related best practices:
+- __Commit-related best practices:__
   - Use descriptive and meaningful commit messages
   - Commit in relatively small chunks
   - Commit only related work
@@ -101,7 +102,7 @@ __Best pratices__
   - Avoid very large deviations between local and remote repository.
   - Keep your feature/bugfix branch up-to-date with remote master and/or develop branch. Pull often from remote git repository
   - Branches shouldn’t be open for too long or master branch should be merged into yourfeature/bugfix branch often
-- Others:
+- __Others:__
   - Don’t "git push" straight to main branch
   - Use --force push carefully! Do NOT force push into master or develop branches orbetter only when working alone in a branch
   - Create a separate branch for each feature or bugfix and name the branch withprefix “feature/xx” and “bugfix/xxx” respectively
