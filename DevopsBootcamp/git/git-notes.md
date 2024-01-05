@@ -58,8 +58,8 @@
       - It is used to exclude certain folders or files from being tracked by git. For example,
         - certain code editors generate folders, like __*.idea*__ by intellij which is specific to your computer and does not need to be tracked
         - build folders, where compiled code is located, like 
-          - __*build/**__ 
-          - __*node_modules/**__ ... etc.
+          - __build/*__ 
+          - __node_modules/*__ ... etc.
         - some OS specific files like MacOS creates __*.DS-Store*__ file which stores metadata about your local folder
       - if the code had already been submitted with those folders, once you list those folders in the .git ignorefiles, you will notice that git lists them as modified beacuse it is set to track them
         - you can remove them with: `git rm -r --cached <file names>`
