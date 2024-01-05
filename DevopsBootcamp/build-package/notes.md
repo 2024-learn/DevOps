@@ -112,6 +112,10 @@ __examples of artifact repositories:__
 
     ENTRYPOINT ["java", "-jar" "java-app-1.0-SNAPSHOT.jar"]
     ```
+  - execute tests on the build servers:
+    - npm/yarn test
+    - gradle/mvn test
+  
   - __Apps from TWN-Devops Bootcamp github repos:__
   - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/java-app
   - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/java-maven-app
