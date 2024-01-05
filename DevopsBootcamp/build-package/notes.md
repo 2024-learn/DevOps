@@ -121,3 +121,42 @@ __examples of artifact repositories:__
   - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/java-maven-app
   - https://github.com/techworld-with-nana/react-nodejs-example
   - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/node-app.git
+
+- create the jar file: 
+  - `git clone https://gitlab.com/twn-devops-bootcamp/latest/05-cloud/java-react-example.git`
+  - `cd java-react-example`
+  - `gradle build`
+  - 
+- copying file from local to remote server:
+  - ref:
+    - https://www.psychz.net/client/question/en/scp-from-local-machine-to-remote.html
+    - on the local machine:
+      - `scp -i ~/Downloads/formac.pem build/libs/java-react-example.jar ubuntu@35.183.29.205:/home/ubuntu`
+  - on the remote server:
+    - `sudo apt-get update`
+    - `sudo apt install jdk-8-jre-headless`
+    - `java -jar java-react-example.jar`
+      - you can also run it in the background as: `java -jar java-react-example.jar &` 
+        - check for the process with `ps aux | grep java`
+        - you can also kill the process running the `java -jar`
+        - `kill <PID>`
+      - check for servers with active connections: (install net tools)
+        - `netstat -lpnt`
+  - on the AWS console: 
+    - open port 7071 on the firewall
+    - open the app on the browser at port 7071 
+    - 
+  - create a new user:
+    - `sudo adduser <username>`: add new user
+    - `sudo usermod -aG sudo <username>`: add user to sudoers group
+  - ssh into the remote server as new user
+    - on your local:
+      - `ssh-keygen -t rsa -b 4096 -C "likiphyllis@yahoo.com"`
+      - `cat ~/.ssh/id_rsa.pub` copy the public key.
+    - on the remote server:
+      - `su - phyllis`
+      - `mkdir ~/.ssh ; touch ~/.ssh/authorized_keys`
+      - `vi ~/.ssh/authorized_keys`: past the public key and save
+      - exit out of the server
+    - now on the local machine you can login as the user:
+      - `ssh phyllis@<remote server public ip address>`
