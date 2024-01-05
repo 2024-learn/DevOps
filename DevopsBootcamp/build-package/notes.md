@@ -112,4 +112,8 @@ __examples of artifact repositories:__
 
     ENTRYPOINT ["java", "-jar" "java-app-1.0-SNAPSHOT.jar"]
     ```
-  - 
+  - __Apps from TWN-Devops Bootcamp github repos:__
+  - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/java-app
+  - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/java-maven-app
+  - https://github.com/techworld-with-nana/react-nodejs-example
+  - https://gitlab.com/twn-devops-bootcamp/latest/04-build-tools/node-app.git
