@@ -131,7 +131,7 @@ __examples of artifact repositories:__
   - ref:
     - https://www.psychz.net/client/question/en/scp-from-local-machine-to-remote.html
     - on the local machine:
-      - `scp -i ~/Downloads/formac.pem build/libs/java-react-example.jar ubuntu@35.183.29.205:/home/ubuntu`
+      - `scp -i ~/Downloads/formac.pem build/libs/java-react-example.jar ubuntu@<remote IP>:/home/ubuntu`
   - on the remote server:
     - `sudo apt-get update`
     - `sudo apt install jdk-8-jre-headless`
@@ -160,3 +160,6 @@ __examples of artifact repositories:__
       - exit out of the server
     - now on the local machine you can login as the user:
       - `ssh phyllis@<remote server public ip address>`
+    - now copy the jar file to /home/phyllis on the remote server:
+      - `scp build/libs/java-react-example.jar phyllis@3<remote IP >:/home/phyllis`
+    - 
