@@ -259,6 +259,7 @@ __Users and Permissions__
  -  ** Please note that capital `-G` will overwrite the whole of the secondary groups list **
     -  to avoid that use `-aG` to append to the list
     -  e.g. `sudo usermod -aG admin,devops,it phyllis`
+    -  `sudo usermod -aG sudp phyllis`: adds phyllis to the sudoers group
 - `sudo deluser <username>` or `sudo deluser <username>`: delete user
 - `sudo groupdel <groupname>` or `sudo delgroup <groupname>`: delete group
 - `groups`: displays the groups that the currently logged in user belongs to
@@ -690,6 +691,16 @@ __Environment Variables__
    - You can now add the public key you generated on your machine in the remote server in ~/.ssh/authorized_keys
    - __known_hosts__: lets the client authenticate the server to check that it isn't connecting to an impersonator
    - __authorized_keys__: lets the server authenticate the user
+     - careate a new user:
+       - `sudo adduser phyllis`: creates new user phyllis
+       - `sudo usermod -aG sudo phyllis`: adds user phyllis to sudoers group
+     - on the local machine generate keys with `ssh-keygen`
+       - copy the pub key: `cat ~/.ssh/id_rsa.pub`
+     - on the server in the home of the user:
+       - `mkdir ~/.ssh`
+       - `touch authorized_keys`
+       - vim ~/.ssh/authorized_keys and paste the public key
+     - now on the host machine you can ssh into the machine as `ssh phyllis@<public ip of the remote server>`
    - `scp`__secure copy__: Allows you to securely copy files and directories
      - secure, meaning files and password are encrypted
      - `scp test.sh root@IP address:/destination`

@@ -206,8 +206,7 @@
       - advantage: you can mount a reference of the same folder on a host to more than one container, which is especially advantageous if those containers need to share data
       - To access the shell of the Docker VM in order to view volume information, use this command:
   - __Docker volumes demo:__
-      - `docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh`
-      - 
+    - 
   - The actual storage path is created by docker itself. this information is for docker to create that storage on a local file system.
   ```
   volumes:
@@ -223,7 +222,12 @@
       volumes:
         - mongo-data:/data/db
       ```
-  - 
+  - docker volume locations: /var/lib/docker/volumes
+  - to view this on MacOs:
+    - `docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh`
+    - ls /var/lib/docker/volumes
+    - 
+    - 
 
 
 - __References:__
