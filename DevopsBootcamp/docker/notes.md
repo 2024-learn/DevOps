@@ -97,6 +97,10 @@
     ```
     docker run -d -p 8081:8081 -e ME_CONFIG_MONGODB_ADMINUSERNAME=admin -e ME_CONFIG_MONGODB_ADMINPASSWORD=password --net mongo-network --name mongo-express -e ME_CONFIG_MONGODB_SERVER=mongodb mongo-express
     ```
+    start the app:
+    ```
+    docker run -d -p 3000:3000 --name my-app  --net mongo-network phyllisn/my-app:1.3
+    ```
 - __Docker Compose:__
   -   
   - abstracts aways the low-level docker commands
@@ -147,8 +151,79 @@
       - `COPY . /home/app`: executes on the host machine. copy current folder items on the host machine to /home/app in the docker container
     - `CMD []`: entrypoint command
       - `CMD ["node", "server.js"]`: starts the app with: `node server.js`
+    - login to docker:
+      - `docker login -u username -p password docker.io`
+- __Private Docker Registry:__
+  - 
+  - install AWSCLI on macOS: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-macOS.html
+  - install Rosetta:
+  - `sudo softwareupdate --install-rosetta`
+  - `aws configure`: Login to AWS. Provide the AWS credentials
+  - sign in to the AWS ECR: `aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 137236605350.dkr.ecr.us-east-1.amazonaws.com`
+  - Image naming in Docker registries:
+    - registryDomain/imageName:tag
+  - tag the image:
+    - `docker tag my-app:1.0 137236605350.dkr.ecr.us-east-1.amazonaws.com/my-app:1.0`
+    - `docker tag`: renames the image
+  - push the images to the AWS registry:
+    -  `docker push 137236605350.dkr.ecr.us-east-1.amazonaws.com/my-app:1.0`
 
-
+- __Docker Volume:__
+  -  
+  - on the host we have a physical file system: eg. /home/mount/data
+  - on the container we have a virtual file system: eg. /var/lib/mysql/data
+  - __volume types:__
+    - __host volumes:__
+      - where we define the connection or the reference between the host directory and the container directory
+        - `docker run -v /home/mount/data:var/lb/mysql/data`
+      - you decide where on the host file system the reference is made
+    - __anonymous volumes:__
+      - create a volume just by referencing the container directory
+        - `docker run -v /var/lib/mysql/data`
+      - the host directory where the volume should be mounted is not specified
+      - for each container a folder is generated that gets mounted
+    - __named volumes:__
+      - It is an impovement on anonymous volumes.
+        - `docker run -v name:/var/lib/mysql/data`
+      - it specifies the name of the folder on the host file system
+      - unlike anonyous volumes, you can reference this volume by name
+      - recommended for use in production
+      - reference in a docker-compose:
+      ```
+      version: '3'
+      services:
+        mongodb:
+          image: mongo
+          ports:
+            - 27017:27017
+          volumes:
+            - db-data:/var/lib/mysql/data   #define under which path the volume can be mounted
+        mongo-express:
+          ...
+      volumes:
+        db-data # list all the volumes that you have defined
+      ```
+      - advantage: you can mount a reference of the same folder on a host to more than one container, which is especially advantageous if those containers need to share data
+      - To access the shell of the Docker VM in order to view volume information, use this command:
+  - __Docker volumes demo:__
+      - `docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh`
+      - 
+  - The actual storage path is created by docker itself. this information is for docker to create that storage on a local file system.
+  ```
+  volumes:
+  mongo-data:
+    driver: local
+  ```
+  - once you have that name reference it can then be used in the container.
+    - mapped out as: host-volume-name:path-inside-the-container
+      - this has to be the path that mongodb persists data: /data/db
+        - mysql path: /var/lib/mysql
+        - postgress: /var/lib/postgresql/data
+      ```
+      volumes:
+        - mongo-data:/data/db
+      ```
+  - 
 
 
 - __References:__
