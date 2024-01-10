@@ -91,15 +91,16 @@
   - create a docker network: `docker network create mongo-network`
   - start mongo container:
     ```
-    docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password --name mongodb --net mongo-network mongo
+    docker network create mongo-network 
+    docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password --name mongodb --net mongo-network mongo    
     ```
   - start mongo-express container:
     ```
-    docker run -d -p 8081:8081 -e ME_CONFIG_MONGODB_ADMINUSERNAME=admin -e ME_CONFIG_MONGODB_ADMINPASSWORD=password --net mongo-network --name mongo-express -e ME_CONFIG_MONGODB_SERVER=mongodb mongo-express
+    docker run -d -p 8081:8081 -e ME_CONFIG_MONGODB_ADMINUSERNAME=admin -e ME_CONFIG_MONGODB_ADMINPASSWORD=password --net mongo-network --name mongo-express -e ME_CONFIG_MONGODB_SERVER=mongodb mongo-express  
     ```
     start the app:
     ```
-    docker run -d -p 3000:3000 --name my-app  --net mongo-network phyllisn/my-app:1.3
+    docker run -d -p 3000:3000 --name node-app --net mongo-network phyllisn/my-app:1.3
     ```
 - __Docker Compose:__
   -   
@@ -225,9 +226,160 @@
   - docker volume locations: /var/lib/docker/volumes
   - to view this on MacOs:
     - `docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh`
-    - ls /var/lib/docker/volumes
-    - 
-    - 
+    - `ls /var/lib/docker/volumes`
+- __docker hosted repository on nexus
+  - 
+  - configure a docker hosted repo on nexus
+  - HTTP: 8083
+  - `cat ~/.docker/config.json`: it contains all the configuration changes ever made to docker
+  - configure realm: Docker Bearer Token
+  - deploy a plain http registry: https://docker-docs.uclv.cu/registry/insecure/
+  - in the docker UI: settings > docker engine >
+  - under experimental enter: 
+  - `"insecure-registries": ["<nexus-server external IP:8083>"],`
+    - apply and restart docker
+  - `docker login <external IP of nexus server:8083>`
+  - the docker config.json got updated and now has the token that docker repo issued beck to our client, so now we don't have to login everytime we execute commands to the repository.
+    - `cd js-app`
+    - `docker build -t my-app:1.4 .`
+    - `docker tag my-app:1.4 <external IP of nexus server:8083>/my-app:1.4`
+      - e.g. `docker tag my-app:1.4 99.79.194.154:8083/my-app:1.4`
+    - `docker push 99.79.194.154:8083/my-app:1.4`
+    - fetch available docker images:
+      - `curl -u <nexus-user>:<password> -X GET 'http://nexus-server-ip:8081/service/rest/v1/components?repository=docker-hosted'`
+        - `curl -u nx-java:phyllis -X GET 'http://99.79.194.154:8081/service/rest/v1/components?repository=docker-hosted'`
+- __Deploy Nexus as a Docker container:__
+  - 
+  - image: https://hub.docker.com/r/sonatype/nexus3
+  - install docker on new server
+    - `sudo apt-get update`
+    - `sudo apt install docker.io`
+    - `docker volume create --name nexus-data`
+    - `docker run -d -p 8081:8081 --name nexus -v nexus-data:/nexus-data sonatype/nexus3`
+    - `sudo apt install net-tools`
+    - `netstat lpnt`
+  - Nexus needs to be operated by a nexus user not root:
+    - `docker ps`
+    - `docker exec -it b1626ab34803 /bin/bash`
+    - `whoami`
+  - see where the data is persisted on the host machine:
+    - `docker volume ls`
+    - `docker inspect <name of the nexus volume>`
+      - `docker inspect nexus-data`
+        - This will provide a json output which has the mount point: `/var/lib/docker/volumes/nexus-data/_data`
+        - `sudo ls /var/lib/docker/volumes/nexus-data/_data`
+        - this has the admin.password 
+    - this data is also inside the container.
+      - `docker exec -it b1626ab34803 /bin/bash`
+      - `ls`
+      - `cd ../../`
+      - `ls nexus-data/`
+
+- __Docker Best Practices:__
+  - 
+  1. Use official docker images as base image
+  2. Use a specific image version not the "latest" that way you do not get different docker image versions which might break stuff. Fixate the version
+  3. Use a lighter version of the base image like Alpine
+    - images of full blown operating system distro might have more system utilities packaged, hence more tools but you do not need all that in a container. These images are heavier with more layers which beats the purpose of containerization which is light weight images.
+    - full blown operating system distro images also have higher vulnerability exposures
+    - lighter images means less storage space and you can transfer (push, pull) images faster
+    - if you do not require any specific utilities in the container, choose leaner and smaller official images
+  4. Optimize caching image layers
+    - Image layers: we create images using a dockerfile. each command creates a layer.
+      - check docker layers in the image by:
+        - `docker history my-app:1.4`
+    - docker caches each layer, saved on the local file system. If nothing has changed in a layer (or any layers preceding it), it will be re-used from cache
+    - once a layer changes, all the following layers are recreated as well. in other words, when you change one line in the Dockerfile, caches of all the folllowing layers will be busted and invalidated, so ecah layer from that point will be rebuilt.
+    - Order your commands in the Dockerfile from least to most frequently changing.
+    - advantages of caching:
+      - faster image building
+      - downloading only added layers, therefore reducing network-bandwidth
+    - e.g. optimize caching "npm install" layer. Do not re-run when project files change, re-run when package.json file changes
+      |      Instructions           | Dockerfile                              |
+      |-----------------------------|-----------------------------------------|
+      | pull node alpine image      | FROM node:20.0.2-alpine                 |
+      | set working directory       | WORKDIR /app                            |
+      | copy package.json           | COPY package.json package-lock.json .   |
+      | install dependencies        | RUN npm install --production            |
+      | copy project files          | COPY myapp /app                         |
+      | entrypoint command          | CMD ["node", "src/index.js"]            |
+
+  5. Do not include everything in the Dockerfile. Exclude autogenerated folders(like target, build), README files, node_modules, ... etc.
+    - This helps to reduce the image size and prevent unintended secrets exposure
+    - use a .dockerignore file to explicitly exclude files and folders
+    - matching is done using Go's filepath.Match rules
+    - e.g. .dockerignore
+      ```
+      # ignore .git amd .cache folders
+      .git
+      .cache
+      # ignore all markdown files (md)
+      *.md
+      # ignore sensitive files
+      private.key
+      settings.json 
+      ...
+      ```
+  6. You need to separate the "build" stage from the "runtime" stage by making use of multi-stage builds.
+    - There are contents needed during the building of the image that are not needed in the final image to run the app, like test dependencies, development tools, build tools(package.json, pom.xml) that are used for specifying project dependencies and needed for installing dependencies.
+    - the multi-stage build feature allows you to use multiple temporary images during the build process and only keep the latest image as the final artifact
+    - e.g. Dockerfile with 2 build stages.
+      - you can name your stages with "AS <name>"
+      - 1st stage: build java app
+      - each FROM instruction starts a new build stage
+      - you can selectively copy artifacts from one stage to another.
+        - so here we are using files generated in the build stage to copy them in the final image.
+        - the final application image is created only in the last stage. All the files and tools used in the first (build) stage will be discarded once it's completed
+      ```
+      # Build stage
+      FROM maven AS build
+      WORKDIR /app
+      COPY myapp /app
+      RUN mvn package
+
+      # RUN stage
+      FROM tomcat
+      COPY --from=build /app/target/file.war /usr/local/tomcat/we...
+      ...
+      ```
+  7. Create a least priviledged OS User that will be used to start the application
+    - by default, if you do not specify the user, Docker uses the root user. 
+      - This is a bad security practice because when the container starts on the host, it could potentially have root access on the Docker host granting an attacker easier priviledge escalation.
+      - create a dedicated user and group in the docker image and don't forget to set required permissions
+      - change to non-root user with USER directive:
+      -e.g.:
+      ```
+      ...
+      # Create group and user
+      RUN group add -r tom && useradd -g tom tom
+
+      # Set ownership and permissions
+      RUN chown -R tom:tom /app
+
+      # Switch to user
+      USER tom
+
+      CMD ["node", "index.js"]
+      ```
+    - conveniently, some images like node.js already have a generic user bundled in(node), so you do not need to create one yourself.
+      ```
+      FROM node:20.0.2-alpine
+      WORKDIR /app
+      COPY package.json package-lock.json .
+      RUN npm install --production
+      COPY myapp /app
+      USER node
+      CMD ["node", "src/index.js"]
+      ```
+  8. Scan the images for security vulnerabilities
+    -  Docker uses its own service for the vulnerability scan.
+    - Use Docker Scout:
+      - `docker scout cves myapp:1.4`
+    - In the background, docker used its own database of known vulnerabilities to run a can on the image. 
+      - The database of known vulnerabilites gets constantly updated
+
+
+
 
 
 - __References:__
