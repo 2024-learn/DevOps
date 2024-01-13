@@ -378,10 +378,6 @@
     - In the background, docker used its own database of known vulnerabilities to run a can on the image. 
       - The database of known vulnerabilites gets constantly updated
 
-
-
-
-
 - __References:__
   - 
   - MongoDB Docker Image: https://hub.docker.com/_/mongo

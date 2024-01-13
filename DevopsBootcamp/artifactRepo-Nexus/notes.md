@@ -93,7 +93,7 @@
     ```
      repoUser = phyllis
      repoPassword = xxxxxxx  
-     ``` 
+    ``` 
   - `gradle build`
   - `gradle publish`
   - ** for maven you configure repo user and password in ~/.m2 folder
@@ -149,11 +149,11 @@
           - only recommended for a nexus repo manager that is installed or deployed on AWS
     - blob store - state
       - state field: state of the blob store
-        - started: inidicates it is running as expected
-        - failed: inidcated a configuration issue: failed to initialize
+        - started: indicates it is running as expected
+        - failed: indicated a configuration issue: failed to initialize
     - blob store -  blob count
       - represents the number of blobs stored
-      - in the `/opt/sonatype-work/nexus3/blobs/default/content` folder, you can see that the data is stored in different volumes or blobs and this is the number of blos that is currently stored
+      - in the `/opt/sonatype-work/nexus3/blobs/default/content` folder, you can see that the data is stored in different volumes or blobs and this is the number of blobs that is currently stored
     - create a blob store:
       - the path parameter: absolute path to the desired file system location
         - it has to be fully accessible by the OS user account (Nexus user)

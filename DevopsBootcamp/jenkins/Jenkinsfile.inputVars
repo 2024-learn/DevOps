@@ -1,0 +1,48 @@
+def gv
+pipeline {
+  agent any
+  parameters {
+    choice(name: 'VERSION', choices: ['1.1.0', '1.2.0', '1.3.0'], description: '')
+    booleanParam(name: 'executeTests', defaultValue: true, description: '')
+  }
+  stages {
+     stage("init") {
+      steps {
+        script{
+          gv = load "script.groovy"
+        }
+      }
+    }
+    stage("build") {
+      steps {
+        script{
+          gv.buildApp()
+        }
+      }
+    }
+    stage("test") {
+      when {
+        expression {
+          params.executeTests
+        }
+      }
+      steps{
+        script{
+          gv.testApp()
+        }
+      }
+    }
+    stage("deploy") {
+      steps{
+        script{
+          env.ENV = input message: "Select the environment to deploy to", ok: "Done", parameters: [choice(name: 'ONE', choices: ['dev', 'staging', 'prod'], description: '')]
+          gv.deployApp()
+          echo "deploying to ${ENV}"
+          // another common way of using input in Jenkinsfile is to assign it directly to an environmental variable.
+          // e.g when you have one choice parameter, you can assign the input result directly to a variable just like in any other programming language
+          // note: if you have to use input in the script section, we have to use different syntax.
+        }
+      }
+    }
+  }
+} 

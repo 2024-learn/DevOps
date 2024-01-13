@@ -1,0 +1,29 @@
+CODE_CHANGES = getGitChanges()
+pipeline {
+  agent any
+  stages {
+    stage("build") {
+      when {
+        expression {
+          BRANCH_NAME == 'dev' // will only execute if the branch name is dev
+          BRANCH_NAME == 'dev' ||  BRANCH_NAME == 'master' // executes if its a dev branch or a master branch
+          BRANCH_NAME == 'dev' && CODE_CHANGES == true //executes if there is a code change in the dev branch
+        }
+      }
+      steps {
+        echo "building the application"
+      }
+    }
+    stage("test") {
+      steps{
+          echo "testing the application"
+      }
+    }
+    stage("deploy") {
+      steps{
+          echo "deploying the application"
+      }
+    }
+  }
+}
+
