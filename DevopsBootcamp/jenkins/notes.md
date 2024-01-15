@@ -185,7 +185,40 @@ docker push phyllisn/jma:jma-1.1
     - Manage Jenkins > System > Global pipeline libraries
     - default version: default version of the library to load if a script does not select another.
       - can be a branch name, commit hash, tag, etc., according to the SCM
+- __triggering Jenkins jobs:__
+  - manually: use case- may be used for production pipelines
+  - automatically: trigger automatically when changes happen in the git repository
+  - scheduling: cron jobs. trigger job at scheduled times. e.g. running long tests, running tasks on schedule
+  - install gitlab plugin
+  - then configure system:
+    - manage Jenkins > system > gitlab
+    - give the connection a name, 
+    - create an API token in gitlab (under profile > preferences> access tokens)then add that token in the jenkins credentials
+  - configure Jenkins to build whenever there is a code change in gitlab
+    - project > settings > integrations > jenkins
+  - for multi-branch, you need another plugin: mutlibranch scan webhook trigger
+    - in gitlab, configure webhook:
+      - settings > webhooks
 
+- __Dynamically Increment Application Version in Jenkins Pipeline:__
+  - 
+  - __incrementing maven (pom.xml)__
+    - change the patch:
+      - `mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}`
+    - change the major version:
+      - `mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.nextMajorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}`
+    - change the minor version:
+      - `mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.nextMinorVersion}.\${parsedVersion.incrementalVersion}`
+    - replace pom.xml with the new version: you can use this logic in the Jenkinsfile
+      - `mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion} versions:commit`
+  - `mvn package` builds a jar file with version from pom.xml
+  - `mvn clean package`: cleans(removes) the target folder before creating a new package
+  - adding the version change details to be committed to the git reposistory creates an infinite loop of commit and webhook trigger.
+    - when to configure logic that detect that the commit was made from Jenkins and ignore trigger when commit is from Jenkins
+    - we can do it through a plugin: Ignore Committer Strategy. you can also use (depending on your git repository):
+      - GitHub/Bitbucket Commit Skip SCM Behavior
+      - configure multibranch pipeline
+        - property strategy > build strategies > ignore committer stategy (jenkins email) > allow builds when a changeset contains non-ignored authors
 
 __References:__
   - 
