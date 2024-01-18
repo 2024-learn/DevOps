@@ -185,13 +185,14 @@ docker push phyllisn/jma:jma-1.1
     - Manage Jenkins > System > Global pipeline libraries
     - default version: default version of the library to load if a script does not select another.
       - can be a branch name, commit hash, tag, etc., according to the SCM
-- __triggering Jenkins jobs:__
+- __triggering Jenkins jobs (webhooks):__
   - manually: use case- may be used for production pipelines
   - automatically: trigger automatically when changes happen in the git repository
   - scheduling: cron jobs. trigger job at scheduled times. e.g. running long tests, running tasks on schedule
-  - install gitlab plugin
+  - install __gitlab__ plugin
   - then configure system:
-    - manage Jenkins > system > gitlab
+    - manage Jenkins > system > global pipeline libraries (name: jenkins-shared-library)
+    - version: can be a branch, commit hash, or a tag, according to the SCM
     - give the connection a name, 
     - create an API token in gitlab (under profile > preferences> access tokens)then add that token in the jenkins credentials
   - configure Jenkins to build whenever there is a code change in gitlab
