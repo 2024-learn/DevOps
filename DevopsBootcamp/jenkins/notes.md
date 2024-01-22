@@ -100,7 +100,7 @@ docker push phyllisn/jma:jma-1.1
     - this stops all the containers. 
     - restart the containers with the `docker start <containerID>` command
     - reconfigure the permission to the docker.sock file
-      - `docker exec -u 0 -it <containerID> bash` 
+      - `docker exec -u 0 -it <containerID> bash`
       - `chmod 666 /var/run/docker.sock`
   - configure nexus credentials in Jenkins UI
     - manage jenkins> credentials
