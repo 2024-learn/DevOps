@@ -158,12 +158,490 @@
   - How to use: <https://github.com/ahmetb/kubectx>
 
 - __Services:__
-  - each pod gets ots own IP address, but pods are ephemeral. Service has a stable IP address that is not linked to the pod lifecycle
+  - each pod gets its own IP address, but pods are ephemeral. Service has a stable IP address that is not linked to the pod lifecycle
   - it also provides load balancing to pods of the same application/replicas
-  - they are a good absstraction of loose coupling for communication within and outside of the cluster
+  - they are a good abstraction of loose coupling for communication within and outside of the cluster
+  - a service identifies it member pods or its endpoint pods using the selectors attribute.
+  - when you have a pod with two ports, the service knows which port to direct the request to using the targetPort attribute.
+  - when you create a service, k8s creates an endpoint object that has the same name as the service itself. K8s will use this endpoints object to keep track of which pods are members/endpoints of the service.
+  - service communication: port vs. targetPort-
+    - service port is arbitrary
+    - targetPort must match the port the container/ application port inside the container is listening at
+  - 3 service type attributes: ClusterIp, NodePort, LoadBalancer
   - __ClusterIP:__
     - default service type if no other service is specified.
+    - Only accessible within the cluster.
+    - Multiport services:
+      - when you have multiple ports defined in a service, you have to name those ports, while this is optional in services with only one port.
 
+      ```multiport-service
+      apiversion: v1
+      kind: Service
+      metadata:
+        name: mongodb-service
+        ...
+      spec:
+        selector:
+          app: mongodb
+        ports:
+          - name: mongodb
+            protocol: TCP
+            port: 27017
+            targetPort: 27017
+          - name: mongodb-exporter
+            protocol: TCP
+            port: 9216
+            targetPort: 9216
+      ```
+
+    - Headless Service:
+      - used when client/pod wants to communicate with one specific pod directly, instead of a randomly selected pod.
+      - Use case: stateful applications like databases
+      - client needs to figure out IP addresses of each pod.
+        - Option 1: API call to k8s API server and it will return the list of pods and their IP addresses.
+          - This makes the app too tied to k8s api and inneficient because you will have to list the pods and their IP addresses everytime you want to connect to the pods
+        - Option 2: DNS lookup
+          - As an alternative, k8s allows the client to discover pod IP addresses through DNS lookups. When a client performs a DNS lookup for a service, the DNS sserver returns a single IP address which belongs to the service (clusterIP address).
+      - however, if you tell k8s that you do not need a cluster IP address of the servicem by setting the clusterIP field to none when creatig a service, then the DNS server will return the pod IP addresses instead of the services IP address. And now the client can do a simple DNS lookup to get the IP address of the pods that are members of that service. and then client can use that IP address to connect to the specific pod it want to talk to or all the pods.
+
+      ```headless service
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mongo-service-headless
+      spec:
+        clusterIP: None
+        selector:
+          app: mongodb
+        ports:
+          - protocol: TCP
+            port: 27017
+            targetPort: 27017
+      ```
+
+  - __NodePort:__
+    - creates a service that is accessible on a static port on each worker node in the cluster.
+    - makes the external traffic accessible on the static port on each worker node
+    - nodeport value has a predefined range between 30000 and 32767
+    - when you create a nodePort service, a cluster Ip is also automatically created.
+    - not secure because nodeport service opens the port to directly talk to services on each worker node, so the external clients have access to worker nodes directly.
+    - nodeport is not for use in production envs; configure Ingress or LoadBalancer for prod envs.
+
+  - __LoadBalancer:__
+    - service is made accessible externally through a cloud provider's load balancer functionality.
+    - whenever we create a load balancer service, nodeport and cluster Ip services are created automatically by k8s, to which the external load balancer of the cloud platform will route the traffic to.
+    - loadbalancer service is an exttention of NodePort service
+    - nodeport service is an extension of clusterIp service
 - __Ingress:__
   - List of Ingress Controllers you cna choose from: <https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/>
+  - external service vs. ingress:
+    - Ingress does not work with an external service, it does with an internal service. This means that you don't have to open the application via IP address and port number. Now, if the request arrives from the browser, it is received by the Ingress and then it directs it to the desired service and eventually ends up with the Pod. <https://medium.com/@owaisnasir433/kubernetes-ingress-vs-external-services-c1b61acb9c78#:~:text=To%20differentiate%20more%20clearly%2C%20Ingress,IP%20address%20and%20port%20number.>
+    - An ingress is really just a set of rules to pass to a controller that is listening for them. You can deploy a bunch of ingress rules, but nothing will happen unless you have a controller that can process them. A LoadBalancer service could listen for ingress rules, if it is configured to do so.
+    - An Ingress Controller is simply a pod that is configured to interpret/ evaluate and process ingress rules and manages all the redirections. One of the most popular ingress controllers supported by kubernetes is nginx. Without it, the ingress would not work.
+    - external service:
+
+    ```externalservice.yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: myapp-external-service
+    spec:
+      selector:
+        app: myapp
+      type: LoadBalancer
+      ports:
+        - protocol: TCP
+          port: 8080
+          targetPort: 8080
+          nodePort: 35010
+    ```
+
+    - ingress:
+
+    ```ingress.yaml
+    apiVersion: netwroking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: myapp-ingress
+    spec:
+      rules:
+      - host: myapp.com
+        http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: myapp-internal-service
+                  port:
+                    number: 8080
+    ```
+
+    - routing rules: forward request to the internal service
+    - backend: where the incoming request will be directed and the service name should correspond to the internal service name
+    - port: internal service port
+    - host has to be a valid domain address
+      - map the domain name to the IP address, which is the entrypoint to your k8s cluster
+  - you can configure the ingress in different ways:
+    - using a cloud-provider load balancer which then forwards the request to the internal service
+    - using a proxy-server: This is a spearate server with a public IP address and open ports which acts as the entrypoint to the cluster, and none of the servers in k8s cluster is accessible from outside
+- install ingress controller in minikube:
+  - `minikube addons enable ingress`
+  - this automatically starts the k8s nginx implementation of ingress controller
+  - minikube uses minikube tunnel to enable ingress access to the resources
+- create ingress rule
+  - enable minikube dashboard:
+    - `minikube dashboard`
+  - configure an ingress rule for the dashboard to it is available externally using a domain name
+    - `kubectl get all -n kubernetes-dashboard`
+    - `kubectl get ingress -n kubernetes-dashboard`
+  - map the localhost address to dashboard.com(minikube)
+    - 127.0.0.1 dashboard.com
+    - `minikube tunnel`: once you close the tunnel, the application will no longer be accessible on the browser although it is configured in the /etc/hosts file
+    - now you can accesss the kubernetes dashboard at dashboard.com
+- ingress default backend:
+  - `kubectl describe ingress -n kubernetes-dashboard`
+  - whenever a request comes into the cluster that is not mapped to any backend,so there is no rule for mapping that request to a service, then this default backend is used to handle that request.
+  - a good usage for that is to define custom error messages when a page isn't found, when a request comes in that the application cannot handle so that the user still sees a meaningful error message or a custom page where you can redirect them to your home page, etc.
+
+  ```default backend
+  spec:
+    defaultBackend:
+      service:
+        name: kubernetes-dashboard
+        port:
+          number: 80
+  ```
+
+- more use cases:
+  - defining multiple paths for the same host
+    - 1 domain, many services
+    - accessible at myapp.com/analytics and myapp.com/shopping
+
+  ```multiple-paths-ingress.yaml
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: simple-fanout-example
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+  spec:
+    rules:
+    - host: myapp.com
+      http:
+        paths:
+        - pathType: Prefix
+          path: /analytics
+          backend:
+            service:
+              name: analytics-service
+              port:
+                number: 3000
+        - pathType: Prefix
+          path: /shopping
+          backend:
+            service:
+              name: shopping-service
+              port:
+                number: 8080
+  ```
+
+- multiple sub-domains or domains:
+  - insteead of one host and miltiple paths, this one has mutliple hosts with one path, where each host represents  a subdomain and inside each subdomain, there is one path that again redirects the requests to the service in question
+  - available at analytics.myapp.com and shopping.myapp.com
+
+  ```multiple-subdomains.yaml
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: name-virtual-host-ingress
+  spec:
+    rules:
+    - host: analytics.myapp.com
+      http:
+        paths:
+        - path: /
+          backend:
+            service:
+              name: analytics-service
+              port: 
+                number: 3000
+    - host: shopping.myapp.com
+      http:
+        paths:
+        - path: /
+          backend:
+            service:
+              name: shopping-service
+              port:
+                number: 8080
+  ```
+
+- configuring a TLS certificate- https://
+  - configure a tls attribute under specification:
+
+  ```tls-configuration
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: tls-example-ingress
+  spec:
+    tls:
+    - hosts:
+      - myapp.com
+      secretName: myapp-secret-tls
+    rules:
+    - host: myapp.com
+      http:
+        paths:
+        - path: /analytics
+          backend:
+            service:
+              name: myapp-internal-service
+              port: 
+                number: 8080
+  ```
+
+tls-certificate:
+
+```tls-certificate
+apiVersion: v1
+kind: Secret
+metadata:
+  name: myapp-secret-tls
+  namespace: default
+type: kubernetes.io/tls
+data:
+  tls.crt: base64 encoded cert
+  tls.key: base64 encoded key
+```
+
+- to note:
+  - data keys need to be "tls.crt" and 'tls.key"
+  - values are file contents, not file paths/locations
+  - secret component has to be created in the same namespace as the ingress component for it to be abe to use the secret, otherwise you cannot reference the secret from another namespace
+
+- __Volumes:__
+  - we persist data in k8s using volumes
+  - storage needs to not depend on the pod lifecycle.
+  - storage also needs to be available to all nodes, not just a specific node because we cannot determine the node that the pod will be scheduled on, once it restarts.
+  - storage needs to survive even if the cluster crashes
+  - persistent volume: A persistent volume is a piece of storage in a cluster that an administrator has provisioned. It is a resource in the cluster, just as a node is a cluster resource. A persistent volume is a volume plug-in that has a lifecycle independent of any individual pod that uses the persistent volume.<https://www.netapp.com/devops-solutions/what-is-kubernetes-persistent-volumes/#:~:text=A%20persistent%20volume%20is%20a,that%20uses%20the%20persistent%20volume.>
+  - PersistentVolume(pv) is just an abstract component and it takes the storage from the actual physical storage like the local hard drive from the cluster nodes, or external NFS servers outside teh cluster, cloud storage like AWS block storage, Google cloud storage, etc.
+  - you need to create and manage the storage because kubernetes only provides the pv component
+
+  ```pv.yaml
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: mypv
+  spec:
+    capacity:
+      storage: 5Gi
+    volumeMode: Filesystem
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Recycle
+    storageClassName: slow
+    mountOptions:
+      - hard
+      - nfsvers=4.1
+    nfs:
+      path: /dir/path/on/nfs/server
+      server: nfs-server-ip-address
+  ```
+
+- google cloud example:
+
+```gcp-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test-volume
+  labels:
+    topology.kubernetes.io/zone: us-central1-a__us-central1-b
+spec:
+  capacity:
+    storage: 400Gi
+  accessModes:
+    - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: my-data-disk
+    fsType: ext4
+```
+
+- spec attributes differ according to storage type.
+- local storage example:
+
+  ```local-storage.yaml
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-name
+  spec:
+    capacity:
+      storage: 100Gi
+    volumeMode: Filesystem
+    accessModes:
+      - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: slow
+    local:
+      path: /mnt/disks/ssd1
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+              - example-node
+  ```
+
+- persistent volumes are not namespaced and are available to the whole cluster
+- local vs. remote volume types:
+  - local volume types violate requirements for data persistence: being tied to 1 specific node and surviving cluster crashes.
+  - you should almost always use remote storage for best practices.
+  - kubernetes supports several types of volumes: <https://kubernetes.io/docs/concepts/storage/volumes/#volume-types>
+- pv resources need to be created before the pod referencing the PV is created.
+- The application has to claim that persistent volume storage using a persistent volume claim (pvc).
+  - exaample of pvc:
+
+  ```pvc.yaml
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: pvc-name
+  spec:
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: manual
+    volumeMode: Filesystem
+    accessModes:
+      - ReadWriteOnce
+  ```
+
+- use that pvc in pod configuration:
+
+```pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: myfrontend
+    image: nginx
+    volumeMounts: #container
+    - mountPath: "/var/www/html"
+      name: mypd
+  volumes: # pod
+    - name: mypd
+      persistentVolumeClaim:
+        claimName: pvc-name
+```
+
+- levels of volume abstractions:
+  - pod requests the volume through the pv claim
+  - pvc tries to find a volume in the cluster
+  - pv has the actual storage backend that it will create that storage from
+  - claims must exist in the same namespace as the pods using the pvc, while the pv is not namespaced.
+  - Once the pod finds the matching pv, through the pvc, the volume is then mounted into the pod, then the volume is mounted into the container.
+  - if you have multiple containers, then you can chose which containers to mount the volume into
+- Both configMap and secrets are local volumes that are not create via pv and pvc, but rather own components that are managed by kubernetes itself
+- Storage Class:
+  - SC provisions persistent volumes dynamically whenever PVC claims it.
+    - it creates persistent volumes in the background
+  - storage-class example:
+
+``` storageClass.yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: strage-class-name
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: io1
+  iopsPerGb: "10"
+  fsType: ext4
+```
+
+- Each storage backend has its own provisioner.
+  - internal provisioner: prefixed with 'kubernetes.io'
+  - external provisioner
+- storage class usage:
+  - requested by persistent volume claim
+    - pod clains storage via pvc
+    - pvc requests storage from SC
+    - SC creates pv that meets the need of the claim
+
+- __ConfigMap and Secret as k8s volumes:__
+  - you can create the configmap and secrets as files that can be mounted into the container so that the application in that container can access them.
+  
+  ```configmap
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: mosquitto-config-file
+  data:
+    mosquitto.conf: | # file name and below file contents
+      log_dest stdout 
+      log_type all
+      log_timestamp true
+      listener 9001
+  ```
+
+- secret:
+
+  ```secret
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: mosquitto-secret-file
+  type: Opaque
+  data:
+    secret.file: |
+      ghjJKseyh3CdJLjmn4k= #base64 code value
+  ```
+
+- certificate:
+
+```Certificate
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: my-secret
+  type: Opaque
+  data:
+    cacert.pem: |
+      base64 code value of a PEM certificate
+```
+
+- code:
+  - starting code: <https://gitlab.com/twn-devops-bootcamp/latest/10-kubernetes/configmap-and-secret-volume-types/-/tree/starting-code>
+  final code: <https://gitlab.com/twn-devops-bootcamp/latest/10-kubernetes/configmap-and-secret-volume-types>
+  - `kubectl exec -it mosquitto-746f66ff55-kwh9g  -- /bin/sh`
+  - overwrite the mosquitto.conf file using the configmap by mounting it into the container
+  - configmap and secret must be created and exist before the pod starts in the cluster
+  - `kubectl get secret`
+  - `kubectl get configmap` or `kubectl get cm`
+  - mountPath refers to the path in the file system inside teh container
+
+- __statefulSet:__
+  - it is a kubernetes component that is used specifically for stateful applications, eg. all databases or any application that stores data to track the state by saving the data in some storage.
+  - stateless applications are deployed using deployment; stateful applications are deployed using statefulset component.
+  - statefulset makes it possible to replicate the statefulSet app pods.
+  - Replica pods are not identical- pod identity. StatefulSer maintains a sticky identity for each of its pods. While the pods are created from the same specification they are not interchangeable.
+  - each has a persistent pod identifier that it maintains across any scheduling.
+  - the db pods do not have the same physical storage although they use the same data; they each have replicas of the storage that each of them can access for themselves. This means that at any given time that each pod replica must have same data as the other replicas, so they have to continuously synchronize their data. only the main is allowed to change the data and the replicas must know of each change and update their own storage.
+  - when a new db pod joins the cluster, it clones the data from not just any pod, but the previous pod, and once that is done and its upto date, it starts continuous synchronization as well to listen for any updates from by the master pod.
+  - configure persistent volumes for your statefulset so the data can survive pod and node crashes
+  - pod identity: while deployments get a random hash , statefulSet gets a fixed ordered names which is made up of the satefulset name and an ordinal that starts from zero and each additional pod gets the next numeral: $(statefulset name)-$(ordinal), eg mysql-0 (main), mysql-1 ... (replicas)
+  - StatefulSet will not create the nextpod in the replica if the previous one is not already up and running. if the first creation fails or is pending, the next replica will not get created at all, it would just wait.
+  - the same order is held during deletion, but in reversed order and will wait until the largest ordinal number replica is deleted, before it can delete the one preceding it.
+  - each pod also gets its own DNS endpoint from a service. ${pod name}.${governing service domain} eg. mysql-0.svc2, mysql-1.svc2...
+  - these two characteristics ( predocatable pod name and fixed individual DNS name) means that when a pod restarts, the IP address will change but the name and endpoint will stay the same- hence sticky identities.
+  - The sticky identity ensures that each replica pod can retain its state and its role even when it dies and gets recreated.
+  - replicating stateful apps is complex. While k8s helps some, you still need to configure cloning and data synchronization inside the stateful set and also make the remote storage available as well as take care of managing and backing up the remote storage.
   -
