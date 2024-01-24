@@ -559,7 +559,7 @@ spec:
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: strage-class-name
+  name: storage-class-name
 provisioner: kubernetes.io/aws-ebs
 parameters:
   type: io1
@@ -644,4 +644,278 @@ parameters:
   - these two characteristics ( predocatable pod name and fixed individual DNS name) means that when a pod restarts, the IP address will change but the name and endpoint will stay the same- hence sticky identities.
   - The sticky identity ensures that each replica pod can retain its state and its role even when it dies and gets recreated.
   - replicating stateful apps is complex. While k8s helps some, you still need to configure cloning and data synchronization inside the stateful set and also make the remote storage available as well as take care of managing and backing up the remote storage.
-  -
+
+- __Helm__
+  - package manager for Kubernetes
+  - helm charts: bundle of YAML files
+  - search for a healm chart: `helm search <keyword>`
+  - you can search for helm charts in public registries like artifacthub.io, bitnami
+  - there are also helm charts that are available in private registries that are shared within an organization
+  - helm is also a templating engine.
+    - define a common blueprint
+    - dynamic values are replaced by jinja template placeholders (template file)
+  - example template yaml config
+
+  ```template-config.yaml
+  apiVersion: v1
+  kind: pod
+  metadata: 
+    name: {{ .Values.name }}
+  spec:
+    containers:
+    - name: {{ .Values.container.name }}
+      image: {{ .Values.container.image }}
+      port: {{ .Values.container.port }}
+  ```
+
+- values.yaml
+
+```values.yaml
+  name: my-app
+  container:
+    name: my-app-container
+    image: my-app-image
+    port: 9001
+```
+
+- .Values is an object that is being created based on  the values that are supplied via values.yaml file and also through the CLI with --set flag.
+- helm chart structure:
+  - top level: myChart/ folder- name of the chart
+  - Chart.yaml: meta info about the chart, eg. name, version, dependencies
+  - values.yaml: values for the template files. These will be the default values you can override later
+  - charts/ folder: chart dependencies
+  - templates/ folder: the actual template files or where the template files are stored.
+    - when you execute `helm install <chartname>` the template files will be filled with the values from values.yaml
+  - you can optionally have other files like README.md or license file, etc
+- you can overide the default values in the values.yaml file in two ways:
+  - by using the --values flag to represent the new values.yaml file
+    - `helm install --values=my-values.yaml <chartname>`
+    values.yaml(default)
+
+    ```values.yaml
+    imageName: myapp
+    port: 8080
+    version: 1.0.0
+    ```
+  
+    - my-values.yaml
+
+    ```my-values.yaml
+    version: 2.0.0
+    ```
+
+    - result:
+
+    ``` result:
+    imageName: myapp
+    port: 8080
+    version: 2.0.0
+    ```
+
+  - by using the --set flag on the CLI
+    - eg. `helm install --set version=2.0.0`
+
+- Release management:
+  - managed by the release binary
+  - if an upgrade to a Helm chart is released, or if you need tochange the configuration of your deployment, you can run `helm upgrade <chartname>`
+    - any changes made since the last release are going to be applied to the existing deployment instead of creating a new one
+  in case the upgrade was fails or the configuration changes are wrong, you can rollback that upgrade using `helm rollback <chartname>` to specific version of the chart if you add the version to the command
+- __installing helm:__
+  - <https://helm.sh/docs/intro/install>
+    - MacOs: `brew install helm`
+  - <https://docs.bitnami.com/kubernetes/infrastructure/kubeapps/get-started/install/>
+  - <https://gitlab.com/twn-devops-bootcamp/latest/10-kubernetes/helm-demo>
+
+  - `helm repo add bitnami https://charts.bitnami.com/bitnami`
+  - `kubectl cluster-info`
+  - `helm search repo bitnami`
+  - <https://github.com/bitnami/charts/blob/main/bitnami/mongodb>
+  - <https://github.com/bitnami/charts/tree/main/bitnami/mongodb>
+  - `helm install mongodb --values helm-mongodb.yaml bitnami/mongodb`
+  - to delete a chart: `helm delete <my-RELEASE>` ... `helm delete mongodb`
+  - `kubectl get secret mongodb -o yaml`
+  - <https://medium.com/google-cloud/kubernetes-storage-overview-of-storage-classes-af1102e7b3f9>
+  - `kubectl apply -f helm-mongo-express.yaml`
+  - `kubectl get svc`, `kubectl get pod`, `kubectl get deploy`
+  - install kubernetes ingress controller- nginx via helm chart:
+    - `helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx`
+    - `helm install nginx-ingress ingress-nginx/ingress-nginx --set controller.publishService.enabled=true`
+    - `controller.publishService.enabled=true` will enable a load balancer
+  - create ingress rule for mongo-express:
+    - `kubectl apply -f helm-ingress.yaml`
+    - `kubectl get ingress`
+      - accessed at external-ip-address:80 since I have not configured a host
+    - `kubectl scale --replicas=0`
+    - `kubectl get statefulset`
+    - `kubectl scale --replicas=0 statefulset/mongodb`
+    - `helm ls`
+    - `helm uninstall <chartname>`
+
+- __deploying images in k8s from private Docker repo:__
+  - steps to pull image from private registry
+    - create secret component: contains credentials for docker registry
+      - `aws ecr get-login-password`
+    - ssh into minikube:
+      - `minikube ssh`
+      - `pwd`, `ls -a`
+      - `docker login --username AWS -p <the token you got from the aws ecr command above> <AWS-account-id>.dkr.ecr.ca-central-1.amazonaws.com`
+    - use the .docker/config.json to create the secret component:
+      - copy the file from minikube to the host:
+        - `minikube cp minikube:/home/docker/.docker/config.json ~/.docker/config.json`
+        - `cat ~/.docker/config.json | base64` and paste this in docker-secret.yaml. Then apply the docker-secret.yaml file to create the secret
+        - Alternatively, skip straight to creating the secret:
+
+        ```secret
+        kubectl create secret generic my-registry-key \
+        --from-file=.dockerconfigjson=~/.docker/config.json \
+        --type=kubernetes.io/dockerconfigjson
+        ```
+
+      - you can also create the secret like this:
+
+      ```secret
+      kubectl create secret docker-registry my-registry-key-two \
+      --docker-server=https://137236605350.dkr.ecr.ca-central-1.amazonaws.com \
+      --docker-username=AWS \
+      --docker-password=<aws ecr get-login-password> \
+
+      ```
+
+    - configure deployment/pod: use secret using imagePullSecrets
+    - apply both deployment files.
+      - imagePullAlways forces docker to pull the image from AWS
+      - imagePullSecrets: references the secret in docker-secret.yaml file
+  - *To note!*: Secret has to be in the same namespace as Deployment/StatefulSet or any other component that's being created that needs to reference it.
+
+- __Kubernetes Opperator:__
+  - <https://www.aquasec.com/cloud-native-academy/kubernetes-101/kubernetes-operators/#:~:text=In%20Kubernetes%2C%20an%20operator%20is,(API)%20and%20kubectl%20tooling.>
+  - In Kubernetes, an operator is an application-specific controller that can help you package, deploy, and manage a Kubernetes application.
+  - Ordinarily, you run and manage Kubernetes applications via the Kubernetes application programming interface (API) and kubectl tooling. Operators lets you extend the functionality of the Kubernetes API, enabling it to configure, create, and manage instances of applications automatically using a structured process.
+  - Operators use the basic capabilities of Kubernetes controllers and resources, but add application-specific or domain knowledge to automate the entire lifecycle of the application it manages.
+  - it is a custom control loop in k8s.
+  - makes use of (custom resource definitions)CRDs
+  - operator takes the basic k8s resources and its controller concept, as a fundation to build upon. on top of that, it includes the domain or application specific knowledge to automate the entire lifecycle of the application it manages or operates
+  - while k8s can manage the complete lifecycle of stateless apps, it cannot automate the process natively for stateful apps, and there it uses its own operator for each different application
+  - there are already multiple operators that have been created and are ready to use but you can also create your own operator with Operator SDK
+
+- __Role-Based Authorization Control:__
+  - least-privilege rule
+  - with RBAC, you cna define namespaced permissions. it also determines what you can do with those resources (CRUD)
+  - RoleBinding: link("bind) a role to a user or group. All members of the group get thte premissions defined in the role
+  - Cluster role defines what resources have what permissions, cluster-wide. cluster role is not namespaced
+  - Kubernetes does not manage users natively. it does not have a k8s object for representing normal user accounts. it relies on external sources for creating and managing users and groups
+  - Admins can choose from different authentication strategies.
+    - can be a static token file, certificates signed by k8s or a 3rd party identity service like ldap
+  - admin configures external source
+  - API server handles authentication of all the requests
+    - pass token file via `--token-auth-file=/users.csv`
+    - `kube-apiserver --token-auth-file=/users.csv [other options]`
+  - you can also link a service account to a role with roleBinding or to a clusterRole with clusterRoleBinding
+  - example role.yaml
+
+  ```role.yaml
+  kind: Role
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    # namespace: default
+    name: developer
+  rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "create", "list"]
+    # resourceNames: ["myapp"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+    # resourceNames: ["mydb"]
+  ```
+
+  - apiGroups: "" indicates the core API group
+  - resources: k8s componenets like pods, deployments, etc
+  - verbs: the action on a resource
+  - namespace: you can define a namespace, otherwise if the namespace is not defined, then the role will be created in the default namespace
+  - resourceNames: you can also define access to only certain pods in that namespace using the resourceNames attribute
+
+  - RoleBinding: attaches or binds a subject to a role
+
+  ```rolebinding
+  kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: phyllis-developer-binding
+  subjects:
+  - kind: User
+    name: phyllis
+    apiGroup: rbac.authorization.k8s.io
+  roleRef:
+    kind: Role
+    name: developer
+    apiGroup: rbac.authorization.k8s.io
+  ```
+  
+  ```group subject
+  subjects:
+  - kind: Group
+    name: "devops-admins"
+    apiGroup: rbac.authorization.k8s.io
+
+  ```
+
+  ```serviceaccount subject
+  subjects:
+  - kind: ServiceAccount
+    name: default
+    apiGroup: kube-system
+  ```
+
+  - ClusterRole and ClusterRoleBinding example:
+    - you can define a cluster role for:
+      - cluster-wide resources
+      - namespaced resources in a clusterRole: grants access to that component in all namespaces
+  
+  ```clusterrolebinding for cluster-wide resources
+  kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: cluster-admin
+  rules:
+  - apiGroups: [""]
+    resources: ["nodes", "namespaces"]
+    verbs: ["get", "create", "list", "delete", "update"]
+  ```
+
+  ```clusterrolebinding for namespaced resources
+  kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: cluster-admin
+  rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "deployments"]
+    verbs: ["get", "create", "list", "delete", "update"]
+  ```
+
+  - clusterrolebinding:
+
+  ```clusterrolebinding
+  kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: read-screts-global
+  subjects:
+  - kind: Group
+    name: cluster-admins
+    apiGroup: rbac.authorization.k8s.io
+  roleRef:
+    kind: ClusterRole
+    name: cluster-admin
+    apiGroup: rbac.authorization.k8s.io
+  ```
+
+  - `kubectl get roles`
+  - `kubectl describe role <role name>`
+
+  - You can also checj the priviledges that your current user has using kubectl auth command.
+    - kubectl provides `auth can-i` subcommand to check if the current user can perform a given action
+      - `kubectl auth can-i create deployments --namespace dev`
+    - admins can also check permissions of other users
