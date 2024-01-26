@@ -698,6 +698,7 @@ parameters:
   - Chart.yaml: meta info about the chart, eg. name, version, dependencies
   - values.yaml: values for the template files. These will be the default values you can override later
   - charts/ folder: chart dependencies
+  - .helmignore: files that you do not want to include in your helm chart
   - templates/ folder: the actual template files or where the template files are stored.
     - when you execute `helm install <chartname>` the template files will be filled with the values from values.yaml
   - you can optionally have other files like README.md or license file, etc
@@ -1072,4 +1073,120 @@ parameters:
     - To update a k8s cluster, you do this node by node to avoid application and cluster downtime, which is why it's important to have multiple replicas and nodes
 
 - __Helm Chart for Microservices:__
-  - 
+  - Create a helm chart:
+    - `helm create microsvc`
+    - in the template folders, delete all other files except service.yaml and deployment.yaml
+    - clear out the contents in deployment.yaml, service.yaml and values.yaml
+  - "Values" object:
+    - Values is a built-in object which is by default empty
+    - values are passed into template from 3 sources:
+      - the values.yaml file
+      - user-supplied file with the -f flag
+      - parameter passed with --set flag on the CLI
+  - Built-in objects:
+    - several objects are passed into a template from the template engine.
+      - e.g. "Release", "Files", "Values"...
+      - <https://helm.sh/docs/chart_template_guide/builtin_objects>
+  - variable naming conventions:
+    - names should begin with a lowercase letter
+    - separated with camelcase. no dashes
+
+  - flat or nested values:
+    - values may be flat or nested deeply/hierarchical structure:
+    - Best Practice is to use flat structure, which is simpler
+      - flat:
+      - {{ .Values.appName }}
+      - {{ .Values.appReplicas }}
+
+        ```flat
+        appName: myapp
+        appReplicas: 2
+        ```
+
+      - nested:
+      - {{ .Values.app.name }}
+      - {{ .Values.app.replicas }}
+
+    ```nested
+    app:
+      name: myapp
+      replicas: 1
+    ```
+
+  - Dynamic environment variables
+    - "range"
+      - when working with a list, there is a built-in function in the template files called "range"
+      - provides for a "for each"- style loop
+      - range is the same thing. it loops/iterates through/ranges over the list of variables or ojects and lets you access each element of that list, one by one.
+      - {{- range}}
+      - env. vars are always interpreted as strings even when it is an integer.
+        - for that, we can use piping- same concept as UNIX,
+          - tool for chaining together template commands
+        - {{ .value | quote }}
+        - and close the loop with {{- end}}
+  
+  - helm rendering process:
+    - when helm evaluates a chart, it sends all the template files that are defined in the templates directory through helm's template rendering engine.
+    - engine then replaces the variables or placeholders in those template files with actual values from the values resources(default values file, user provided values file, or --set option)
+  
+  - validating helm chart:
+    - `helm template -f <custom values file> <chart name>`: render chart templates locally and display the output
+      - `helm template -f emailservice-values.yaml microsvc`
+    - "helm lint" command
+      - examines a chart for possible issues
+        - ERROR: issues that will cause the chart to fail at installation
+        - WARNING: issues that break convention, or recommendations
+        - `helm lint -f emailservice-values.yaml microsvc`
+    - `helm install --dry-run`: checks generated manifest without installing the chart
+      - diffreence between --dry-run and template:
+        - --dry-run sends files to k8s cluster, while template only validates it locally
+      - `helm install --dry-run -f values/redis-values.yaml redis-cart charts/redis`
+  
+  - deploy a microservice
+    - `helm install -f myvalues.yaml <release name> <chart name>`
+      - `helm install -f emailservice-values.yaml emailservice microsvc`
+    - `helm ls`
+    - `kubectl get pod`
+
+  - create redis helm chart
+    - `mkdir charts ; mv microsvc charts/microsvc`
+    - `cd charts`
+    - `helm create redis`
+    .
+    ├── charts
+    │   ├── microsvc
+    │   │   ├── Chart.yaml
+    │   │   ├── charts
+    │   │   ├── templates
+    │   │   │   ├── deployment.yaml
+    │   │   │   └── service.yaml
+    │   │   └── values.yaml
+    │   └── redis
+    │       ├── Chart.yaml
+    │       ├── charts
+    │       ├── templates
+    │       │   ├── deployment.yaml
+    │       │   └── service.yaml
+    │       └── values.yaml
+    └── values
+        ├── adservice-values.yaml
+        ├── cartservice-values.yaml
+        ├── checkoutservice-values.yaml
+        ├── currencyservice-values.yaml
+        ├── emailservice-values.yaml
+        ├── frontend-values.yaml
+        ├── paymentservice-values.yaml
+        ├── productcatalogservice-values.yaml
+        ├── recommendationservice-values.yaml
+        ├── redis-values.yaml
+        └── shippingservice-values.yaml
+
+    - `chmod u+x install.sh`
+    - `./install.sh`
+    - this is not an elegant way of working with helm. To uninstall these charts, you would have to run a `helm uninstall` for each release
+- Helmfile:
+  - it is a declarative way of deploying helm charts
+  - define the desired state
+  - helmfile allows us to declare a definition of an entire k8s cluster in a single yaml file
+  - you can define multiple helm releases in it and then change specifications of each release depending on the application or type of environment like dev,testing, production... on which you are deploying your applications.
+  -

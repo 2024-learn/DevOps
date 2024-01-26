@@ -1,0 +1,1 @@
+helm uninstall adservice cartservice checkoutservice currencyservice emailservice frontend paymentservice productcatalogservice recommendationservice redis-cart shippingservice
