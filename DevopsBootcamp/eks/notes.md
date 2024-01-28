@@ -265,6 +265,72 @@
       - adjust the Jenkinsfile. add the new credentials in the Jenkins UI as enviroment vars <https://gitlab.com/likiphyllis/aws-multibranch/-/blob/deploy-on-k8s/Jenkinsfile?ref_type=heads>
       - build the pipeline.
   - Adjust Jenkinsfile to configure EKS cluster deployment
+  - credentials best practice:
+    - create jekins servie account in kubernetes and limit permissions. eg. deploy application to specific namespace, create deployment and service resources, etc.
+    - create credentials for Jenkins user inside the cluster with a user token
+
+- __Complete CI/CD Pipeline with EKS and DockerHub:__
+  - code: java-maven-app branch <https://gitlab.com/likiphyllis/aws-multibranch.git>
+  - envsubst: environment substitute command
+    - used to substitute any variables defined inside a file
+    - envsubst is a tool we need to install inside Jenkins container
+    - how it works: we pass a file to envsubst command and it will take that file, look for the syntax $ and name of the variable and it will try to match that name of the variable to any env. vars defined in that context and sustitute that value
+    - it creates a temporary file with the values set, and we pipe that temporary file and pass it as a parameter
+  - install "gettext-base" tool on Jenkins container:
+    - `docker exec -u 0 -it <container ID> bash`
+    - `apt-get install gettext-base`
+  - The dockerhub credentials must also be available in the k8s cluster
+    - we do that by creating a special secret of docker registry type with the credentials(username and password).
+      - We only need to create the secret once, so we do not need to put this in the pipeline. We can create that from our local machine.
+        - docker-registry: secret type
+        - my-registry-key: name of the secret
+        - docker-server: dockerhub name (if nexus: URL of the nexus repo, if ECR, you can copy the URL frowm AWS ECR)
+        - docker-username: username that you use to login to your repository
+
+        ```docker-registry-secret
+        kubectl create secret docker-registry my-registry-key \
+        --docker-server=docker.io \
+        --docker-username=phyllisn \
+        --docker-password=XXXX
+        ```
+
+      - `kubectl get secret`
+
+      ```secret-output
+      kget secret
+      NAME              TYPE                             DATA   AGE
+      my-registry-key   kubernetes.io/dockerconfigjson   1      12s
+      ```
+
+      - `k delete deploy --all`
+
+- __Complete CI/CD Pipeline with EKS and ECR:__
+  - code: eks-ecr branch <https://gitlab.com/likiphyllis/aws-multibranch.git>
+  - create ECR repository
+    - ECR allows unlimited number of repos, so you can host a repo per app
+    - you can create a repo for each microservice and have multiple versions in each repo
+  - create credentials for ECR repo in Jenkins
+    - `aws ecr get-login-password --region ca-central-1` gives you the password that is then piped into the rest of the push command
+    - create the credentials on Jenkins UI (global)
+      - username AWS
+      - ID: ecr-credentials
+      - password: value from the output of: `aws ecr get-login-password --region ca-central-1`
+    - create secret for AWS ECR
+      - `kubectl create secret docker-registry aws-registry-key --docker-server=137236605350.dkr.ecr.ca-central-1.amazonaws.com --docker-username=AWS --docker-password=<value of password above>`
+      - `kubectl get secret`
+
+        ```kget secret
+        NAME               TYPE                             DATA   AGE
+        aws-registry-key   kubernetes.io/dockerconfigjson   1      29s
+        my-registry-key    kubernetes.io/dockerconfigjson   1      69m
+        ```
+
+  - adjust building and tagging
+    - `imagePullSecrets name: aws-registry-key`
+  - update Jenkinsfile
+    - change credentials to ecr-credentials that was created in the Jenkins UI.
+    - change the repo name
+  - execute jenkins pipeline
 
 - __Best Practices:__
   - Security- AWS KMS: <https://docs.aws.amazon.com/eks/latest/userguide/enable-kms.html>
