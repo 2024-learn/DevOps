@@ -144,23 +144,23 @@ docker push phyllisn/jma:jma-1.1
   }
   ```
 - __Jenkins Environmental Variables:__
-  - 
+  -
   - found at <Jenkins-server>:8080/env-vars.html
 
 - __MultiBranch Pipeline:__
-  - 
+  -
   - branch sources > behaviours > discover branches
   - branch-based logic for Multibranch pipeline:
 
 - __credentials in Jenkins:__
-  - 
+  -
   - "credentials plugin: Jenkins offers this plugin to store and manage credentials centrally
   - __scope:__
     - system(Jenkins and nodes only): credential is available only on the Jenkins server
       - not visible by or available for Jenkins Jobs
       - use case: used by jenkins admins for configuring/intergrating Jenkins with other Services
     - global(Jenkins, nodes, items, all child items, etc): accessible everyhere.
-    - project: credentials that are limited to your project. 
+    - project: credentials that are limited to your project.
       - Only in the multibranch pipeline
       - comes from the folder plugin
         - folder plugin: basically for organizing your jobs in folders. enables you to have credentials scoped to your project
@@ -174,7 +174,7 @@ docker push phyllisn/jma:jma-1.1
     - ohter new types based on plugins ... e.g. github app
   - __ID:__ reference for your credentials
 - __Shared Library:__
-  - 
+  -
   - main folder is called vars. it icludes all the functions that we execute or call from the Jenkinsfile
     - each function/execution step is its own groovy file inside the vars folder
   - src folder: helper code
@@ -193,7 +193,7 @@ docker push phyllisn/jma:jma-1.1
   - then configure system:
     - manage Jenkins > system > global pipeline libraries (name: jenkins-shared-library)
     - version: can be a branch, commit hash, or a tag, according to the SCM
-    - give the connection a name, 
+    - give the connection a name,
     - create an API token in gitlab (under profile > preferences> access tokens)then add that token in the jenkins credentials
   - configure Jenkins to build whenever there is a code change in gitlab
     - project > settings > integrations > jenkins
@@ -202,7 +202,7 @@ docker push phyllisn/jma:jma-1.1
       - settings > webhooks
 
 - __Dynamically Increment Application Version in Jenkins Pipeline:__
-  - 
+  -
   - __incrementing maven (pom.xml)__
     - change the patch:
       - `mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}`

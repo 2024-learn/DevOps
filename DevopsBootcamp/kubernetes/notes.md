@@ -1184,9 +1184,39 @@ parameters:
     - `chmod u+x install.sh`
     - `./install.sh`
     - this is not an elegant way of working with helm. To uninstall these charts, you would have to run a `helm uninstall` for each release
-- Helmfile:
+      - `touch uninstall.sh`
+      - `chmod u+x uninstall.sh`
+      - `./uninstall.sh`
+- __Helmfile:__
   - it is a declarative way of deploying helm charts
   - define the desired state
   - helmfile allows us to declare a definition of an entire k8s cluster in a single yaml file
   - you can define multiple helm releases in it and then change specifications of each release depending on the application or type of environment like dev,testing, production... on which you are deploying your applications.
-  -
+  - Create Helmfile:
+    - `touch helmfile.yaml`
+    - you can configure additional values or override any defined values with the helmfile, for example:
+
+    ```helmfile
+    releases:
+    - name: redis-cart
+      chart: charts/redis
+      values:
+        - values/redis-values.yaml
+        - appReplicas: "1"
+        - volumeName: "redis-cart-data"
+    ```
+
+  - install helmfile
+    - install the helmfile tool: `brew install helmfile`
+    - deploy helmcharts
+      - `helmfile sync`
+        - In the background, helmfile will prepare all the releases, screen the helmfile configuration.
+        - It then compares the actual state in the cluster with the desired state that is configured in the helmfile
+      - `helmfile list`
+  - uninstall releases:
+    - `helmfile destroy`
+
+  - hosting helmcharts:
+    - just like the application code, helm charts and helmfiles are hosted in the git repo as tehy are part of IaaC
+      - You can package it and host it with the app code
+      - host it in a separate git repo for helm charts
