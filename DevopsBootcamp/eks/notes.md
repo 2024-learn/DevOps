@@ -263,14 +263,9 @@
       - `cat .aws/credentials`
       - copy the access key and secret access key(separate credentials)
       - adjust the Jenkinsfile. add the new credentials in the Jenkins UI as enviroment vars <https://gitlab.com/likiphyllis/aws-multibranch/-/blob/deploy-on-k8s/Jenkinsfile?ref_type=heads>
-      -
+      - build the pipeline.
   - Adjust Jenkinsfile to configure EKS cluster deployment
 
 - __Best Practices:__
   - Security- AWS KMS: <https://docs.aws.amazon.com/eks/latest/userguide/enable-kms.html>
   - EKS best practices: <https://aws.github.io/aws-eks-best-practices/>
-
-
-curl -Lo aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.6.14/aws-iam-authenticator_0.6.14_linux_amd64
-chmod +x ./aws-iam-authenticator
-mv ./aws-iam-authenticator /usr/local/bin
