@@ -170,6 +170,19 @@
     - move .pem key to your .ssh folder and set the permissions to 400
   - deploy nginx docker container
   - create a security group(firewall)
+  - user_data: the script that runs once as your instace is provisioning
+  - eg. *user-data*
+
+    ```user-data.sh
+      user_data = <<-EOF
+                  #!/bin/bash
+                  sudo yum update -y && sudo yum install -y docker
+                  sudo systemctl start docker
+                  sudo usermod -aG docker ec2-usersudo
+                  chmod 666 /var/run/docker.sock
+                  docker run -d -p 8080:80 nginx
+                EOF
+    ```
 
 - provisioners
   - "remote-exec" provisioner:
@@ -266,5 +279,13 @@
   - modules: they are like function definitions.
     - input vars: like function arguments
     - output values: like function return values
+      - to expose/export resource attributes to parent module
     - do not modularize just one resource. group several resources. eg. networking (vpc, subnet, firewall, route table..), ec2(instance, key pair)
+
+    - project structure
+      - root module
+      - /modules = child modules
+        - child module: a module that is called by another configuration
+
+    - values are defined in .tfvars file and set as valuables in variables.tf in the root module, the values are passed to the child module as arguments via variables.tf in the child module
     -

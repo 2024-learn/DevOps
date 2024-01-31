@@ -1,0 +1,4 @@
+.terraform/*
+*.tfstate*
+# should not be checked in due to sensitive materials like ssh keys, certicates, etc (*.tfvars)
+DS_Store
