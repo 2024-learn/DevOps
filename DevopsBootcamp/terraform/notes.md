@@ -311,7 +311,7 @@
         - and now you will be able to run kubectl commands
   
   - __CI/CD pipeline with Terraform:__
-    - code: https://gitlab.com/likiphyllis/java-maven-app.git (jenkinsfile-sshagent branch)
+    - code: <https://gitlab.com/likiphyllis/java-maven-app.git> (jenkinsfile-sshagent branch)
     - stage("provision server")
       - steps to do:
         - create ssh key pair on AWS:
