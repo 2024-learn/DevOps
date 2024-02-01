@@ -288,4 +288,77 @@
         - child module: a module that is called by another configuration
 
     - values are defined in .tfvars file and set as valuables in variables.tf in the root module, the values are passed to the child module as arguments via variables.tf in the child module
-    -
+  
+  - __EKS__
+    - single_nat_gateway : all private subnets will route their internet traffic through this single NAT gateway
+    - tags: for human consumption to provide us with more information
+      - they are also used as a label for referencing components from other components(programmatically)
+      - e.g. cloud controller manager - the private and public_subnet_tags help the cloud controller manager identify which VPC and subnets it should connect to.
+        - these tags are for consumption by the k8s cloud controller manager and AWS load balancer controller that is responsible for creating load balancers for k8s loadbalancer types
+    - cluster_version = kubernetes version
+    - subnet_ids: list of subnets where the worker nodes will be started.
+      - private: for the workloads
+      - public: for external resources like loadbalancers
+    - update kubeconfig:
+      - pre-requisites:
+        - aws cli installed
+        - kubectl installed
+        - aws-iam-authenticator installed
+      - `aws eks update-kubeconfig --name myapp-eks-cluster --region us-east-2`
+      - we still need to enable public access to the cluster.
+        - `cluster_endpoint_public_access =  true` makes the k8s cluster it the API server process on the k8s cluster publicly accessible from external clients like kubectl from our local computer
+        - run `aws eks update-kubeconfig --name myapp-eks-cluster --region us-east-2` again
+        - and now you will be able to run kubectl commands
+  
+  - __CI/CD pipeline with Terraform:__
+    - code: https://gitlab.com/likiphyllis/java-maven-app.git (jenkinsfile-sshagent branch)
+    - stage("provision server")
+      - steps to do:
+        - create ssh key pair on AWS:
+          - in the multip-pipeline branch, create project-scoped credentials(ssh username with private key)
+          - username: ec2-user
+        - install tf inside jenkins container
+          - enter the container as a root user: `docker exec -u 0 -it <containerid> bash`
+          - check OS system to find the right installation instructions:
+            - `cat /etc/os-release`
+            - <https://developer.hashicorp.com/terraform/install>
+            - `apt-get install wget`
+            - `apt-get update && apt-get install -y lsb-release && apt-get clean all`
+        - tf configuration to provision server
+          - create terraform configuration files in a terraform folder in java-maven-app code
+        - adjust Jenkinsfile
+          - configure stages
+            - `dir`: helps to provide the path of the folder with the terraform configuration
+            -
+    - installation documentation for docker-compose standalone: <https://docs.docker.com/compose/install/standalone/>
+  
+- terraform remote state file
+  - terraform block provides mtadata and information about terraform itself
+  - backend: the remote backend for terraform.
+    - determines how state is loaded/stored
+    - default: local storage
+    - key: the path inside the s3 bucket. it can have a folder/hierarchy structure
+  - to access the list of resources uploaded to the s3 backend bucket:
+    - (on jenkinsfile-sshagent branch):
+      - `cd terraform`
+      - `terraform init`
+      - `terraform state list`
+  - the bucket has to be created before using it as a backend
+  - delete the resources before deleting the backend
+
+- __Best Practices:__
+  - Only manipulate the state with tf apply and tf state commands.
+    - do not make changes to the state file directly
+  - Always set up a shared remote storage if working in a team
+  - Use state locking until an update is fully completed, to prevent concurrent edits to your statefile, which break idempotency
+    - in s3,DynamoDB service is automatically used for state locking
+    - note: not all backends support locking
+    - if supported, terraform will lock your statefile automatically
+  - backup the statefile
+    - enable versioning and the you can use a previous version to reverse to
+  - use one state per environment with a backend and locking configured
+  - host tf scripts in a git repo for effective team collaboration and version control of IaC code
+  - Treat tf code just like your app code
+    - same process for reviewing and testing changes with pull/merge requestes to integrate code changes
+  - execute terraform in an automated build
+    - apply infra changes only through an automated build

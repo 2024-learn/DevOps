@@ -202,8 +202,8 @@
     ```eksctl create cluster command
     eksctl create cluster \
     --name demo-cluster \
-    --version 1.27 \
-    --region eu-central-1 \
+    --version 1.29 \
+    --region ca-central-1 \
     --nodegroup-name demo-nodes \
     --node-type t2.micro \
     --nodes 2 \
@@ -302,7 +302,7 @@
       my-registry-key   kubernetes.io/dockerconfigjson   1      12s
       ```
 
-      - `k delete deploy --all`
+      - `kubectl delete deploy --all`
 
 - __Complete CI/CD Pipeline with EKS and ECR:__
   - code: eks-ecr branch <https://gitlab.com/likiphyllis/aws-multibranch.git>
@@ -331,6 +331,9 @@
     - change credentials to ecr-credentials that was created in the Jenkins UI.
     - change the repo name
   - execute jenkins pipeline
+
+  - cleanup
+    - `eksctl delete cluster --name=demo-cluster --wait`
 
 - __Best Practices:__
   - Security- AWS KMS: <https://docs.aws.amazon.com/eks/latest/userguide/enable-kms.html>
