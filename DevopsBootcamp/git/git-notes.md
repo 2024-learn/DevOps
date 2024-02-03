@@ -35,8 +35,9 @@
     - `git push -u origin main` pushes the code upstream from local repo with an alias "origin" to a remote repo named "main"
       - `git push --set-upstream origin master`: if the current branch is "master" and there is no remote branch named master, to push the current branch and set the remote branch that you are pushing to to have the same name as the local branch. This is the same thing you do for any feature or bug fix branches that you have created in the local that are not in the remote
       - when you create a feature/bugfix branch remotely, you have to create it off of the main/master branch. Then the codebase is created in the new branch. Locally, you have to pull these changes with a `git pull` command.
-    - `git branch -m main`: renames a branch into "main"
-    - `git branch -d <branch>` : delete a branch
+    - `git branch -M main`: renames a branch into "main"
+        - `git push origin --delete <branch-name>` deletes an upstream branch
+          - `git branch -d <branch-name>`: deletes a branch from the local repo
       - to delete a branch that has already been deleted remotely:
         - `git checkout master`
         - `git pull`; to make sure the code you have locally matches with the remote repo code
