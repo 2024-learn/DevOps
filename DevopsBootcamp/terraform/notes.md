@@ -1,11 +1,14 @@
 # Terraform - Infrastructure as Code
 
 - Difference between Ansible and Terraform
-| Ansible                                                           | Terraform                                                 |
-|-------------------------------------------------------------------|-----------------------------------------------------------|
-| mainly a configuration tool, deploy apps, install/update software | mainly infrastructure provisioning tool, can deploy apps  |
-| more mature                                                       | relatively new- changing dynamically                      |
-|                                                                   | more advanced in orchestration                            |
+  - Ansible
+    - mainly a configuration tool, deploy apps, install/update software
+    - more mature
+  - Terraform
+    - mainly a configuration tool, deploy apps, install/update software
+    - mainly infrastructure provisioning tool, can deploy apps
+    - relatively new- changing dynamically
+    - more advanced in orchestration
 
 - __Terraform architecture:__
   - terraform has two main components that make up its architecture.

@@ -129,6 +129,7 @@ resource "aws_instance" "dev_aws_instance" {
   subnet_id              = aws_subnet.dev_subnet.id
   vpc_security_group_ids = [aws_default_security_group.default_sg.id]
   availability_zone      = var.availability_zone
+  count = 1
 
   associate_public_ip_address = true
   # key_name = "formac"
@@ -154,10 +155,10 @@ resource "aws_instance" "dev_aws_instance" {
     script = "user-data.sh"
   }
   provisioner "local-exec" {
-    command = "echo ${self.public_ip} > output.txt"
+    command = "echo ${self.public_ip} >> output.txt"
   }
 
   tags = {
-    Name = "${var.env_prefix}server"
+    Name = "${var.env_prefix}server-${count.index}"
   }
 }
