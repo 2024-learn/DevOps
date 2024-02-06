@@ -1,0 +1,17 @@
+---
+- name: configure nginx web server
+  hosts: webserver
+  tasks:
+  - name: install nginx
+    become: true
+    yum:
+      name: nginx
+      state: latest
+      # name: nginx=1.18*
+      # state: present
+  - name: start nginx
+    become: true
+    service:
+      name: nginx
+      state: started
+

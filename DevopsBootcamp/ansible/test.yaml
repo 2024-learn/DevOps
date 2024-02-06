@@ -1,0 +1,18 @@
+- hosts: databases
+  remote_user: root
+  vars:
+    tablename: foo
+    tableowner: someuser
+  tasks:
+    - name: rename table {{ tablename }} to bar
+      postgresql_table:
+        table: {{ tablename }}
+        rename: {{ bar }}
+    - name: set owner to someuser
+      postgresql_table:
+        name: {{ tablename }}
+        owner: someuser
+    - name: truncate table
+      postgresql_table:
+        name: {{ tablename }}
+        truncate: yes

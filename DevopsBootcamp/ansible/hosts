@@ -1,0 +1,22 @@
+# [aws]
+# 35.182.184.31 ansible_ssh_private_key_file=~/.ssh/formac.pem ansible_user=ubuntu
+# 15.222.15.60 ansible_ssh_private_key_file=~/.ssh/formac.pem ansible_user=ubuntu
+
+[aws]
+35.182.184.31
+15.222.15.60
+
+[aws:vars]
+ansible_ssh_private_key_file=~/.ssh/formac.pem
+ansible_user=ubuntu
+ansible_python_interpreter=/usr/bin/python3
+
+[webserver]
+ec2-15-223-3-159.ca-central-1.compute.amazonaws.com
+ec2-3-99-192-218.ca-central-1.compute.amazonaws.com
+ec2-15-223-64-131.ca-central-1.compute.amazonaws.com
+
+[webserver:vars]
+ansible_ssh_private_key_file=~/.ssh/formac.pem
+ansible_user=ec2-user
+ansible_python_interpreter=/usr/bin/python3
