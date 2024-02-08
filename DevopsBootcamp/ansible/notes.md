@@ -157,6 +157,8 @@
   - can have multiple plays(a group of tasks that you want to execute on sveral servers)
 - executing a playbook:
   - `ansible-playbook -i hosts my-playbook.yaml`
+  - alternatively, in the ansible.cfg file yyou can configure the default inventory file with: `inventory = hosts` that way you c an run the command with the -i flag:
+    - `ansible-playbook my-playbook.yaml`
 - "gather facts" module
   - automatically called by playbooks
   - gathers useful variables about remote hosts that can be used in playbooks
@@ -176,3 +178,123 @@
   - it is an online hub for finding and sharing ansible community content
   - `ansible-galaxy` is a command -line utility to install individual collections
     - `ansible-galaxy install <collection-name>`
+- `command`: lets you execute commands on a server just like you would execite them manually
+- `shell`: pretty much like command but shell executes command in the shell.
+  - so the pipe operator `|`, redirect operators `>` or `<`, boolean operators `&&`, `||` and environment variables $HOME...etc that you have available in the shell, if you  need to use them, then you need to use the shell module.
+  - `command` is more secure in terms of having these commands isolated and not running them directly through the shell, where as the shell module is more open to shell injection
+- return values of modules:
+  - ansible modules normally return data
+  - this data can ne registered into a variable
+  - `register`: the register attribute is available for any task/module.
+    - it creates a variable and assigns that variable result of the module execution or task execution
+  - `debug` module:
+    - prints statements during execution
+    - useful for debugging variables or expressions
+- `command` and `shell` modules:
+  - use only when no appropriate ansible module is available.
+  - they are not idempotent because they do not have state management
+- best practice: do not run the plays as a root user: create a new linux user and grant them the privileges to run the play:
+
+  ```create linux user:
+  - name: create linux user for nodeapp
+  hosts: aws
+  tasks:
+    - name: create linux user
+      user:
+        name: phyllis
+        comment: phyllis-admin
+        group: admin
+      register: user_creation_result
+    - debug: msg={{user_creation_result}}
+  ```
+
+- privilege escalation: become
+  - `become` allows you to become another user, different from the user that logged into the machine. default is *false*
+  - `become_user`: set to user with desired privileges
+    - Default is *root*
+
+  ```become_user:
+  - name: Deploy nodejs app
+  hosts: aws
+  become: True
+  become_user: phyllis
+  tasks:
+    - name: unpack nodejs file
+      unarchive:
+        src: ../nodejs-app/package/nodejs-app-1.0.0.tgz
+        dest: /home/phyllis
+  ```
+
+- registering variables:
+  - create variables from the output of an Ansible task
+  - this variable can be used in any later tasks in your play
+
+- referencing variables
+  - using double curly braces
+  - if you start a value with {{ value }}, you must quote the whole expression to create a valid yaml syntax
+  - this can be done several ways:
+    - passing in variables using the - vars attribute: in the yaml file
+    - on the comand line using `--extra-vars` flag or `-e` flag and passing the variables as key=value pairs
+    - external variables file
+      - the variables file uses yaml syntax, so you can use thte extension.yaml
+  - naming of the variables:
+    - not valid: python keywords like *async*, playbook keywords like *environment*, hyphens (linux-name), numbers only(12)
+    - valid: letters, numbers, underscores
+    - should always start with a letter
+- `get_url` module:
+  - Downloads files from HTTP, HTTPS or FTP to the remote server
+  - separate module for windows targets: `win_get_url`
+- `find` module
+  - returns a list of files based on a specific criteria
+  - for windows targets: `win_find` module
+- conditionals:
+  - exceute task depending on some condition
+  - `stat` module:
+    - retrieve file or file system status
+  - `when` applied to a single task
+    - no curly braces needed
+    - the when statement applies the test
+- `group` module;
+  - manage presence of groups on a host
+  - for windows: `win_group`
+- `user` module
+  - manage user accounts and user attributes
+  - for windows: `win_user`
+- `file` module
+  - manages file and file properties
+- `blockinfile` module:
+  - insert/update/remove a multiline text surrounded by customizable marker lines
+- `lineinfile` module:
+  - ensures a particular line is in a file or replace an existing line using regex
+  - useful when you want to change a single line in a file only
+  - use "replace" module to change multiple lines
+- `pause` module and `wait_for` module:
+  - wait for specified time to pass before executing task
+
+- `uname`: a command-line utility the prints basic information about the OS name and system hardware
+- `lookup` plugins:
+  - lookup plugins are an ansible specific extension to the jinja2 templating language
+  - they allow ansible to access data from outside sources
+  - `pipe` lookup plugin:
+    - pipe is an ansible lookup plugin
+    - it calculates the output of the shell command and pipes it to the left side of your lookup
+- `systemd` Module
+  - controls systemd services on remote hosts
+- docker community collection
+  - includes many modules and plugins to work with Docker
+- Fully Qualified Collection Name(FQCN):
+  - used to specify the exact source of a module/plugin/...
+  - eg. community.docker.docker_image
+  - ansible.builtin is the default namespace and collection name
+  - recommended: used the FQCN so that you don't break code in case the backwards compatibility is removed at a future date/versions.
+    - also because modules can have the same name and the FQCN ensures that Ansible uses the correct module/plugin/etc
+- for verbosity: add -v(vv) flag to the command line when running the playbook.
+  - the more v's the more the verbosity
+- `docker-login` module
+  - similar to "docker login" command
+  - authenticates with a docker registry and adds teh credential to your local Docker config file
+- interactive input: prompts
+  - playbook prompts the user for a certain input
+  - prompting the user for variables lets you avoid recording sensitive data like passwords. `vars_prompt`
+  - you could also encrypt the entered values
+  -

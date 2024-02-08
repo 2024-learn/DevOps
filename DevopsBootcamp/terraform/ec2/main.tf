@@ -129,7 +129,7 @@ resource "aws_instance" "dev_aws_instance" {
   subnet_id              = aws_subnet.dev_subnet.id
   vpc_security_group_ids = [aws_default_security_group.default_sg.id]
   availability_zone      = var.availability_zone
-  count = 3
+  count = 1
 
   associate_public_ip_address = true
   # key_name = "formac"

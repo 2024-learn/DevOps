@@ -1,0 +1,104 @@
+---
+- name: install java and net-tools
+  hosts: aws
+  tasks:
+    - name: update apt repo and cache
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+    - name: install java version 8
+      apt: name=openjdk-8-jre-headless
+    - name: install net-tools
+      apt: name=net-tools
+
+- name: download and unpack nexus installer
+  hosts: aws
+  tasks:
+    - name: check if nexus folder already exists
+      stat:
+        path: /opt/nexus
+      register: stat_result
+    - debug: msg={{stat_result.stat.exists}}
+    - name: download nexus
+      get_url:
+        url: https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+        dest: /opt/
+      register: download_result
+    # - debug: msg={{download_result}}
+    - name: untar nexus installer
+      unarchive:
+        src: "{{download_result.dest}}" #/opt/nexus-3.65.0-02-unix.tar.gz
+        dest: /opt/
+        remote_src: yes
+      when: not stat_result.stat.exists
+    - name: find nexus folder
+      find:
+        paths: /opt
+        pattern: "nexus-*"
+        file_type: directory
+      register: find_result
+    # - debug: msg={{find_result}}
+    - name: rename nexus folder
+      shell: mv {{find_result.files[0].path}} /opt/nexus
+      when: not stat_result.stat.exists
+
+- name: create nexus user to own nexus folders
+  hosts: aws
+  tasks:
+    - name: create nexus group/ensure group nexus exists #(if does not exist, ansible will create it)
+      group:
+        name: nexus
+        state: present
+    - name: create nexus user
+      user:
+        name: nexus
+        groups: nexus
+        create_home: true
+        shell: /bin/bash
+    - name: make nexus user owner of nexus directory
+      file:
+        path: /opt/nexus
+        state: directory
+        owner: nexus
+        group: nexus
+        recurse: yes
+    - name: make nexus user owner of sonatype directory
+      file:
+        path: /opt/sonatype-work
+        state: directory
+        owner: nexus
+        group: nexus
+        recurse: yes
+- name: start nexus with nexus user
+  hosts: aws
+  become: yes
+  become_method: sudo
+  remote_user: nexus
+  tasks:
+    - name: set run_as_user nexus
+      # blockinfile:
+      #   path: /opt/nexus/bin/nexus.rc
+      #   block: |
+      #     run_as_user="nexus"
+      lineinfile:
+        path: /opt/nexus/bin/nexus.rc
+        regexp: '^#run_as_user=""'
+        line: run_as_user="nexus"
+    - name: start nexus
+      command: /opt/nexus/bin/nexus start
+
+- name: verify nexus running
+  hosts: aws
+  tasks:
+    - name: check with ps
+      shell: ps aux | grep nexus
+      register: app_status
+    - debug: msg={{app_status.stdout_lines}}
+    - name: wait one miute before checking nexus status with netstat
+      pause:
+        minutes: 1
+    - name: check with netstat
+      shell: netstat -lpnt
+      register: app_status
+    - debug: msg={{app_status.stdout_lines}}
+
+
+
