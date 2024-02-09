@@ -1,5 +1,6 @@
 resource "aws_vpc" "dev_vpc" {
   cidr_block = var.vpc_cidr
+  # enable_dns_hostnames = true
   tags = {
     Name : "${var.env_prefix}vpc"
   }
@@ -129,34 +130,34 @@ resource "aws_instance" "dev_aws_instance" {
   subnet_id              = aws_subnet.dev_subnet.id
   vpc_security_group_ids = [aws_default_security_group.default_sg.id]
   availability_zone      = var.availability_zone
-  count = 1
+  count = 3
 
   associate_public_ip_address = true
   # key_name = "formac"
   key_name = aws_key_pair.ssh_key.key_name
 
-  # user_data = file("user-data.sh")
-  user_data_replace_on_change = true
+  # # user_data = file("user-data.sh")
+  # user_data_replace_on_change = true
 
-  connection {
-    type        = "ssh"
-    host        = self.public_ip
-    user        = "ec2-user"
-    private_key = file(var.private_key_location)
-  }
-  provisioner "file" {
-    source      = "user-data.sh"
-    destination = "/home/ec2-user/user-data.sh"
-  }
-  # provisioner "remote-exec" {
-  #   inline = ["/home/ec2-user/user-data.sh"]
+  # connection {
+  #   type        = "ssh"
+  #   host        = self.public_ip
+  #   user        = "ec2-user"
+  #   private_key = file(var.private_key_location)
   # }
-  provisioner "remote-exec" {
-    script = "user-data.sh"
-  }
-  provisioner "local-exec" {
-    command = "echo ${self.public_ip} >> output.txt"
-  }
+  # provisioner "file" {
+  #   source      = "user-data.sh"
+  #   destination = "/home/ec2-user/user-data.sh"
+  # }
+  # # provisioner "remote-exec" {
+  # #   inline = ["/home/ec2-user/user-data.sh"]
+  # # }
+  # provisioner "remote-exec" {
+  #   script = "user-data.sh"
+  # }
+  # provisioner "local-exec" {
+  #   command = "echo ${self.public_ip} >> output.txt"
+  # }
 
   tags = {
     Name = "${var.env_prefix}server-${count.index}"

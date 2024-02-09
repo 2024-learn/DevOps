@@ -167,7 +167,7 @@
   - create custom vpc
   - create custom subnet
   - create route table and internet gateway
-    - while AWS will create these by default if not specifies, it is best practise toy provision your own components instead of using the default
+    - while AWS will create these by default if not specifies, it is best practice to provision your own components instead of using the default
   - route table association
   - provision EC2 instance
     - move .pem key to your .ssh folder and set the permissions to 400

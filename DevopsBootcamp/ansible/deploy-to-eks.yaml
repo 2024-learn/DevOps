@@ -1,0 +1,17 @@
+---
+- name: deploy app in new namespace
+  hosts: localhost
+  tasks:
+    - name: Create a k8s namespace
+      kubernetes.core.k8s:
+        name: my-app
+        api_version: v1
+        kind: Namespace
+        state: present
+        kubeconfig: ~/.kube/config
+    - name: Deploy Nginx to my-app ns
+      kubernetes.core.k8s:
+        src: nginx.yaml
+        state: present
+        kubeconfig: ~/.kube/config
+        namespace: my-app

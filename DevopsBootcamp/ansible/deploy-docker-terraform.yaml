@@ -1,20 +1,22 @@
 ---
-# - name: Install python3 (already exists on amazon-linux ec2)
-#   hosts: docker
-#   become: yes
+# - name: Wait for port 22 to become open and contain "OpenSSH"
+#   hosts: aws_ec2
+#   gather_facts: false
 #   tasks:
-#     - name: install python3
+#     - name: ensure ssh port open
+#       wait_for:
+#         port: 22
+#         delay: 10
+#         timeout: 100
+#         search_regex: OpenSSH
+#         host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
 #       vars:
-#       ansible_python_interpreter: /usr/bin/python
-#       yum:
-#         name: python3
-#         update_cache: yes
-#         state: present
+#         ansible_connection: local
+#         ansible_python_interpreter: /usr/bin/python3
 
 - name: install docker
-  hosts: docker
+  hosts: aws_ec2
   become: yes
-  # become_user: root (default user is root)
   tasks:
     - name: install docker
       yum:
@@ -22,17 +24,17 @@
         update_cache: yes
         state: present
 
-- name: install docker-compose
-  hosts: docker
-  tasks:
-    - name: install docker-compose
-      get_url:
-        url: https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64  #Linux-{{lookup('pipe', 'uname -m')}}
-        dest: /usr/local/bin/docker-compose
-        mode: +x
+# - name: install docker-compose
+#   hosts: aws_ec2
+#   tasks:
+#     - name: install docker-compose
+#       get_url:
+#         url: https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64
+#         dest: /usr/local/bin/docker-compose
+#         mode: +x
 
 - name: install pip
-  hosts: docker
+  hosts: aws_ec2
   become: yes
   tasks:
     - name: ensure python3-pip is installed
@@ -40,22 +42,22 @@
         name: python3-pip
         state: present
 
-- name: Install docker python module
-  hosts: docker
+- name: Install docker and docker-compose python module
+  hosts: aws_ec2
   become: yes
   tasks:
     - name: Remove python3-requests
       ansible.builtin.package:
         name: python3-requests
         state: absent
-    - name: Install docker and docker-compose python module
+    - name: Install docker, docker-compose python module
       ansible.builtin.pip:
         name:
           - "docker==6.1.3"
           - "docker-compose"
 
 - name: start docker daemon
-  hosts: docker
+  hosts: aws_ec2
   become: yes
   tasks:
     - name: start docker daemon
@@ -64,7 +66,7 @@
         state: started
       
 - name: add ec2-user to docker group
-  hosts: docker
+  hosts: aws_ec2
   become: yes
   vars_files:
     - vars.yaml
@@ -77,21 +79,8 @@
     - name: reconnect to server session
       meta: reset_connection
 
-# - name: test docker pull
-#   hosts: docker
-#   tasks:
-#     - name: pull redis
-#       # community.docker.docker_image_pull:
-#       #   name: redis
-#       community.docker.docker_image:
-#         name: redis
-#         source: pull
-
 - name: start docker containers from docker-compose
-  hosts: docker
-  # vars_prompt:
-  #   - name: docker_password
-  #     prompt: enter password for docker registry
+  hosts: aws_ec2
   vars_files:
     - vars.yaml
   tasks:
@@ -101,10 +90,9 @@
         dest: /home/ec2-user/docker-compose.yaml
     - name: docker login
       community.docker.docker_login:
-        registry_url: https://index.docker.io/v1/ #docker default
+        registry_url: https://index.docker.io/v1/
         username: phyllisn
         password: "{{docker_password}}"
     - name: start container from docker-compose
       docker_compose:
         project_src: /home/ec2-user
-        # state: present # equivalent: docker-compose up (absent : docker-compose down) present is default, does not need to be defined here

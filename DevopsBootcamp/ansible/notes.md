@@ -296,5 +296,52 @@
 - interactive input: prompts
   - playbook prompts the user for a certain input
   - prompting the user for variables lets you avoid recording sensitive data like passwords. `vars_prompt`
-  - you could also encrypt the entered values
+  - you could also encrypt the entered values or put them in the `vars_files`
+
+- __Working with Dynamic Inventory:__
+  - inventory plugins(recommended over scripts for dynamic inventory)
+    - they take advantage of the most recent updates to the ansible core code
+    - the make use of ansible features including state management
+    - written in yaml format
+  - inventory scripts
+    - written in python
+  - plugins/scripts specific to infra provider
+    - you can use `ansible-doc -t inventory -l` to see a list of available plugins
+    - for AWS infra, you need a specific plugin/script for aws
+    - pre-requisites:
+      - boto3: aws SDK for python
+        - needed to create, configure and manage aws services
+      - botocore
+  - ec2 inventory source
+    config file must end with "aws_ec2.yaml"
+  - ansible-inventory:
+    - used to display or dump the configured inventory as Ansible sees it
+    - `ansible-inventory -i inventory_aws_ec2.yaml --list`
+      - to streamline the information we get from the command above, we can run this instead:
+        - `ansible-inventory -i inventory_aws_ec2.yaml --graph`
+    - assign public DNS to ec2 instances:
+      - on the vpc: enable_dns_hostnames: true
+  - configure Ansible to use dynamic inventory
+
+- __Deploy to k8s__
+  - Openshift python client is used to perform CRUD operations for k8s objects
+    - openshift: python client for openshift platform
+    - check if openshift module is present: `python3 -c openshift`
+    - `pip3 install openshift --user`
+  - PyYAML: Yaml parser and emitter for python
+    - check if pyYaml is available: `python3 -c yaml`
+    - `pip3 install PyYAML --user`
+  - ** pip defaults to installing python packages to a system directory (such as /usr/local/libpython3.7). This requires root access
+    - `--user` makes pip install packages in your home dir. this requires no special privileges
+  - setting the kubeconfig env. variable:
+    - `export K8S_AUTH_KUBECONFIG=~/.kube/config`
+
+- __Ansible integration in Jenkins:__
+  - install ansible on ubuntu server
+  - install pip3, and then use pip3 to install boto3 and botocore
+  - install awscli and configure credentials
+  - __to convert an openssh key into an rsa format:__(acceptable format by jenkins)
+    - `ssh-keygen -p -f.ssh/id_rsa -m pem -P "" -N ""`
+  - on Jenkins UI: download ssh agent
+  - add ansible key credentials: ssh username with private key
   -
