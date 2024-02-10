@@ -1,0 +1,5 @@
+- name: add ec2-user to docker group
+  user:
+    name: ec2-user
+    groups: "{{user_groups}}"
+    append: yes

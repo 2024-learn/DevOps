@@ -344,4 +344,12 @@
     - `ssh-keygen -p -f.ssh/id_rsa -m pem -P "" -N ""`
   - on Jenkins UI: download ssh agent
   - add ansible key credentials: ssh username with private key
-  -
+  - download plugin: ssh pipeline steps
+
+- __Ansible Roles__
+  - <https://spacelift.io/blog/ansible-roles>
+  - Roles let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. After you group your content into roles, you can easily reuse them and share them with other users.<https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html>
+  - roles allow you to structure complax ansible project with lots of playbooks, tasks to be more manageable. you can group your content in roles so you breakup large palybooks into smaller manageable files.
+  - they are like a package for your tasks in a play
+  - variable precedence in ansible: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable>
+

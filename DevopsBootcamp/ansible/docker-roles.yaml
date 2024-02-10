@@ -1,0 +1,88 @@
+---
+# - name: Install python3 (already exists on amazon-linux ec2)
+#   hosts: docker
+#   become: yes
+#   tasks:
+#     - name: install python3
+#       vars:
+#       ansible_python_interpreter: /usr/bin/python
+#       yum:
+#         name: python3
+#         update_cache: yes
+#         state: present
+
+- name: install docker
+  hosts: docker
+  become: yes
+  # become_user: root (default user is root)
+  tasks:
+    - name: install docker
+      yum:
+        name: docker
+        update_cache: yes
+        state: present
+
+- name: install docker-compose
+  hosts: docker
+  tasks:
+    - name: install docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64  #Linux-{{lookup('pipe', 'uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+
+- name: install pip
+  hosts: docker
+  become: yes
+  tasks:
+    - name: ensure python3-pip is installed
+      package:
+        name: python3-pip
+        state: present
+
+- name: Install docker python module
+  hosts: docker
+  become: yes
+  tasks:
+    - name: Remove python3-requests
+      ansible.builtin.package:
+        name: python3-requests
+        state: absent
+    - name: Install docker and docker-compose python module
+      ansible.builtin.pip:
+        name:
+          - "docker==6.1.3"
+          - "docker-compose"
+
+- name: start docker daemon
+  hosts: docker
+  become: yes
+  tasks:
+    - name: start docker daemon
+      systemd:
+        name: docker
+        state: started
+      
+- name: add ec2-user to docker group
+  hosts: docker
+  become: yes
+  vars_files:
+    - vars.yaml
+  roles:
+    - create_user
+
+- name: reconnect to server session
+  hosts: docker
+  tasks:
+    - name: reconnect to server session
+      meta: reset_connection
+      
+- name: start docker containers from docker-compose
+  hosts: docker
+  # vars_prompt:
+  #   - name: docker_password
+  #     prompt: enter password for docker registry
+  vars_files:
+    - vars.yaml
+  roles:
+    - start_containers
