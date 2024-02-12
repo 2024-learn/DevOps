@@ -209,4 +209,13 @@
     - to get docker registry info: `docker info` (grab the registry url)
     - `kubectl create secret docker-registry my-registry-key --docker-server=https://index.docker.io/v1/ --docker-username=phyllisn --docker-password=xxxxxx`
     - integrate the secret in the k8s-config.yaml file with `imagePullSecrets`
-- apply deployment:
+- apply deployment: `kubectl apply -f k8s-config.yaml`
+  - `kubectl get pod`
+  - `kubectl get svc`
+  - `kubectl port-forward svc/nodeapp 3000:3000`
+  - configure service monitor:
+    - `kubectl apply -f k8s-config.yaml`
+  - create grafana dashboard:
+    - rate(http_request_operations_total[2m])
+    - rate(http_request_duration_seconds_sum[2m])
+    -

@@ -21,7 +21,7 @@ spec:
         image: phyllisn/nodejs-app:nodeapp
         ports:
         - containerPort: 3000
-        imagePullPolicy: Always
+        imagePullPolicy: Always  
 ---
 apiVersion: v1
 kind: Service
@@ -34,7 +34,28 @@ spec:
   selector:
     app: nodeapp
   ports:
-  - protocol: TCP
+  - name: service
+    protocol: TCP
     port: 3000
     targetPort: 3000
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: monitoring-node-app
+  labels:
+    release: monitoring
+    app: nodeapp
+spec:
+  endpoints:
+    - path: /metrics
+      port: service
+      targetPort: 3000
+  namespaceSelector:
+    # any: true
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app: nodeapp
 
