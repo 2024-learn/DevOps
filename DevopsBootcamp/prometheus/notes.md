@@ -212,7 +212,7 @@
 - apply deployment: `kubectl apply -f k8s-config.yaml`
   - `kubectl get pod`
   - `kubectl get svc`
-  - `kubectl port-forward svc/nodeapp 3000:3000`
+  - `kubectl port-forward svc/nodeapp 3000:3000 & `
   - configure service monitor:
     - `kubectl apply -f k8s-config.yaml`
   - create grafana dashboard:
