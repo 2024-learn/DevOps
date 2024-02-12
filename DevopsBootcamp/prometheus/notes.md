@@ -1,0 +1,212 @@
+# Prometheus
+
+- Prometheus is an open-source monitoring sytem and alerting toolkit.
+  - it gathers, organizes and stores metrics as time series data from targets by "scarping" metrics HTTP endpoints
+  - can triger alerts when specified conditions are observed
+  - __Official Best practices:__
+    - Metric and Label Naming: <https://prometheus.io/docs/practices/naming/>
+    - Set of guidelines for instrumenting your code: <https://prometheus.io/docs/practices/instrumentation/>
+    - Consoles and Dashboards: <https://prometheus.io/docs/practices/consoles/>
+    - Alerting: <https://prometheus.io/docs/practices/alerting/>
+    - On when to use the Pushgateway: <https://prometheus.io/docs/practices/pushing/>
+  - Prometheus architecture:
+    - prometheus Server:
+      - main component
+      - does the actual monitoring work
+      - the things that Prometheus server monitors are called *targets*
+      - the units that you would like to monitor from a specific target are called *metrics* and that is what gets saved into the prometheus database component
+        - format: human readable text based
+        - HELP: description of what the metrics is
+        - TYPE: 3 metrics types:
+          - *counter type*: how many times something happened, like the number of exceptions an app had, or number of requests it has received
+          - *gauge*: metrics that can go both up and down eg. CPU usage, disk usage, of how many concurrent requests
+          - *histogram*: for tracking how long something took or how big the size of a request was
+      - the prometheus server is made up of three parts:
+        - __time series database__: stores all the metrics data eg. CPU usage, number of exceptions
+        - __data retrieval worker__: responsible for pulling the metrics from applications, services, servers and other target resources and storing them or pushing them into the  time series database
+        - __web server/ HTTP server / server API__ that accepts queries for the stored data. accepts PromQL queries.
+          - it is used to display the data in a dashboard or UI either through prometheus dashboard or some other data visualization tool like Grafana
+  - prometheus pulls metrics data from targets from an HTTP endpoint, which by default is <hostaddress/metrics>
+    - for that to work, one's targets must expose that /metrics endpoint and data available at the /metrics endpoint must be in the the format that promethus understands.
+    - some servers already have that /metrics endpoint exposed so no extra work is required but for other servers without native prometheus endpoints, an extra component called an *exporter* is required.
+      - an exporter is basically a script or a service that fetches metrics from the target and converts them into a format that Prometheus understands, and exposes teh converted data at its own /metrics endpoint, where promethus can scrape them.
+      - prometheus has a list if exporters for different services like MySQL, Elastic Search, Linux Server build tools, cloud platforms, etc.
+      - the exporters are also available as docker images
+- advantages of prometheus
+  - multiple prometheus instances can pull metrics data without causing a traffic bottleneck
+  - with pull mechanisms, prometheus has better detection/insight on whether a service is up and running
+- for targets that only run for a short time like a batch job or scheduled job etc, prometheus offers a pushgateway component, so these services can push their metrics directtly to prometheus database
+- prometheus knows what to scrape and when using the prometheus.yaml configuration file.
+  - define which targets prometheus should scrape and at what interval.
+  - prometheus then uses a service discovery mechanism to find those target endpoints
+  - when you first download and install prometheus, you see the sample config with some default values in it:
+    - global block: how often prometheus will scrape its targets
+      - the evaluation interval in the global config defines how often will evaluate these rules in the rule-files block
+    - rule_files block:
+      - specifies the location of any rules that we want prometheus server to load.
+      - the rules are either for aggregating netrics values or creating alerts when some conditions are met, like CPU usage >= 80%
+      - it uses rules to create new time series entries and generate alerts
+    - scrape_configs: controls what resources prometheus monitors. This is where you define the targets
+- Since Prometheus has its own /metrics endpoint to expose its own data, it can monitor its own health
+- Alert manager:
+  - How does Prometheus trigger the alerts, who receives the alerts?
+  - prometheus has a component called alert manager that is responsible for firing alerts via different channels; email, slack etc.
+  - prometheus server will read the alert rules, and if the conditon in the alert rules is met, an alert gets fired through that configured channel
+- prometheus data storage:
+  - where does promethus store the data it collects and aggregates and how can other systems access this data?
+  - prometheus stores the metrics data on disk; so it includes a local on-disk(HDD/SSD) time series database, but also optionally integrates with remote storage systems.
+  - the data is stored in a custom time series format(promQL) and because of that you cannot write prometheus data directly into a relational database.
+  - Once you have collected the metrics, prometheus also lets you query the metrics data on targets through its server API using promQL query language
+- Prometheus is designed to be reliable even when other systems have an outage, so that you can diagnose the problems and fix them. hence every prometheus server is stand-alone and self-containing, meaning it doesn't depend on network storage or other remote services
+- disadvantage: prmetheus can be difficult to scale.
+  - workarounds:
+    - increase the prometheus server capacity
+    - limit the number of metrics that prometheus collects from applications and keep it down only to the relevant ones
+- if you have to scale prometheus, as an alternative, we can actually build a __prometheus federation__.
+  - prometheus federation allows one server to scrape data form other prometheus servers
+
+- Installing prometheus
+  - create a cluster
+  - install prometheus via helm: <https://artifacthub.io/packages/helm/prometheus-community/prometheus>
+    - `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
+    - `helm repo update`
+    - install chart on its own namespace:
+      - `kubectl create namespace monitoring`
+      - `helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring`: install prometheus
+      - `kubectl --namespace monitoring get pods -l "release=monitoring"`: check its status
+      - `kubectl get all -n monitoring`
+- kube state metrics is its own helm chart, and it is a dependecy of the prometheus helmchart.
+  - it scrapes k8s components metrics themselves. it monitors the health of deployments in statefulsets and pods inside the cluster and makes it available for Prometheus to scrape
+- node-exporter daemonset:
+  - it connects to the server itself or lays over the server and translates worker node metrics to prometheus metrics so they can be scraped
+- the configmaps are also managed by the operator
+  - configuration files are where prometheurs defines what endpoints it should scrape.
+- config-reloader sidecar/helper container: reponsible for reloading the configuration file when it changes.
+  - e.g when we add a new target/endpoint to prometheus for monitoring , it will automatically add that target without us having to restart.
+  - it will also reload the changes to the rules file when we add a new alerts rule or delete alert rules, for example.
+- view prometheus UI. port-forward the service "service/monitoring-kube-prometheus-prometheus"
+  - `kubectl port-forward service/monitoring-kube-prometheus-prometheus -n monitoring 9090:9090 &`
+  - now you can access it on the browser as localhost:9090
+- instance: an endpoint you can scrape
+- job: collection of instances with the same purpose. prometheus uses job name to group them together
+- Grafana dashboards:
+  - `kubectl port-forward service/monitoring-grafana -n monitoring 8080:80 &`
+  - access it on the browser: localhost:8080
+  - default credentials:
+    - user: admin, pwd: prom-operator
+  - panel: the basic visualization building block in Grafana
+    - composed by a query and a visualization
+    - each panel has a query editor specific to the data source selected in the panel
+    - can be moved and resized within the dashboard
+  - structure summary:
+    - folders > dashboards > rows > panels
+  - test for CPU utilizatio spike:
+    - `kubectl run curl-test --image=radial/busyboxplus:curl -i --tty --rm`
+    - `ls`
+    - execute a script that will hit the endpoint of the app 1000 or 10000 times in the container
+      - `chmod +x test.sh`
+      - `./test.sh`
+  - alert rules:
+    - for: causes prometheus to wait for a certain duration
+      - prometheus will check that the alert continues to be active for e.g. 10 miutes before firing the alert
+    - annotations: specifies a set of informational labls for longer additional information
+    - apply the alert rules. you do not have to identify the namespace becasue it is defined in the yaml file.
+      - `kubectl apply -f alert-rules.yaml`
+      - `kubectl get PrometheusRule -n monitoring`
+      - `kubectl get pod -n monitoring`
+      - `kubectl logs prometheus-monitoring-kube-prometheus-prometheus-0 -n monitoring -c config-reloader`
+      - `kubectl logs prometheus-monitoring-kube-prometheus-prometheus-0 -n monitoring -c prometheus`
+  - simulate cpu load:
+    - deploy a pod simulating CPU load. <https://hub.docker.com/r/containerstack/cpustress>
+    - dockerhub > cpustress: turn the docker command ito a kubectl command: `docker run -it --name cpustress --rm containerstack/cpustress --cpu 4 --timeout 30s --metrics-brief`
+    - `kubectl run cpu-test --image=containerstack/cpustress -- --cpu 4 --timeout 30s --metrics-brief`
+  - firing: prometheus sent an alert/notification over to the alert manager and now the alert manager needs to send out an alert to an email/messageing service, etc.
+    - alert manager dispatches notifications about the alert
+    - takes care of deduplicating, grouping and routing them to the correct receiver integration
+  - Alert Manager:
+    - prometheus is its own configuration as in alert manager
+    - `kubectl port-forward svc/monitoring-kube-prometheus-alertmanager -n monitoring 9093:9093 &`
+    - receivers: these are teh notification integrations
+      - null receiver: whatever messsage comes from prometheus will be ignored
+    - route: determines which alerts go to which receivers
+      - match attribute: how we target indivudual alerts or groups of alerts
+        - matches expression for matching alerts with certain labels
+    - top level route:
+      - every alert enters the rougin tree at the top-level route
+      - configuration applying to all alerts
+    - repeat_interval: How long to wait before sending the notification again
+    - group attribute: send notification for a group of alerts to be more efficient
+    - global configuration: defines global configuration for all the receivers for all the routes
+  - get secret: `kget secret alertmanager-monitoring-kube-prometheus-alertmanager-generated -n monitoring -o yaml | less`
+  - create base64 encoded value of your gmail pass for less secure apps: `echo -n <password> | base64`
+  - `kubectl apply -f email-secret.yaml`
+  - `kubectl apply -f alert-manager-config.yaml`
+  - `kubectl get alertmanagerconfig -n monitoring`
+  - `kubectl get pod -n monitoring`
+  - check logs inside alertmanager configuration: `kubectl logs alertmanager-monitoring-kube-prometheus-alertmanager-0 -n monitoring`
+  - `kubectl logs alertmanager-monitoring-kube-prometheus-alertmanager-0 -n monitoring -c config-reloader`
+  - test email notification
+    - delete and restart the cpu-test pod:
+      - `kubectl delete pod cpu-test`
+      - `kubectl run cpu-test --image=containerstack/cpustress -- --cpu 4 --timeout 60s --metrics-brief`
+- exporter:
+  - it is an application that connects to the service and gets metrics data from it
+  - exporter then translates these service specific metrics to Prometheus format metriecs(time series data)
+  - exporter then exposes these translated metrics under its own /metrics endpoint where prometheus can scrape them
+  - when we deploy an exporter in the cluster, we need to inform prometheus about the new endpoint, and for that there is a custom kubernetes resource from the monitoring API called *Service Monitor*
+  - service monitor resource needs to be created together with the exporter that will tell prometheus that there is a new endpoint with metrics data at the specified address
+- deploying redis exporter: <https://github.com/oliver006/redis_exporter>
+  - using a helm chart: <https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-redis-exporter>
+  - serviceMonitor: describes the set of targets to be monitored by prometheus
+- `kubectl get servicemonitor -n monitoring`
+- `kubectl get svc | grep redis`: check the name of the redis sercie and change is accordingly on the redis-values.yaml
+
+- `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
+- `helm repo update`
+- `helm install redis-exporter prometheus-community/prometheus-redis-exporter -f redis-values.yaml`
+- `helm ls`
+- `kubectl get pod`
+- `kubectl get servicemonitor`
+- `kubectl get servicemonitor redis-exporter-prometheus-redis-exporter -o yaml | less`
+
+- **** Get the Redis Exporter URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace default -l "app=prometheus-redis-exporter,release=redis-exporter" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl port-forward $POD_NAME 8080: ****
+  
+- <https://samber.github.io/awesome-prometheus-alerts/> : configured alerting rules
+- `kubectl apply -f redis-rules.yaml`
+- `kubectl get prometheusrule`
+- trigger "Redis Down"
+  - `kubectl edit deployment redis-cart`: reduce the replicas to zero
+  - now edit the replicas back to 1
+- create redis dashboard in Grafana:
+  - use an already configured redis dashboard: <https://grafana.com/grafana/dashboards/>
+  - <https://grafana.com/grafana/dashboards/763-redis-dashboard-for-prometheus-redis-exporter-1-x/>
+  - import dashboard to grafana:
+    - on the grafana UI:
+    - create new dashboard > import: paste dashboard ID > folder: dashboards > datasource: prometheus
+    - `kubectl describe svc redis-exporter-prometheus-redis-exporter`
+
+- monitor own app
+  - in order to monitor our own applications with prometheus, we need to use prometheus client libraries in those apps.
+    - choose a prometheus client library that matches the language in which your application is written
+    - prometheus client libraries provide an abstract interface for defining metrics in your applications that you want to expose as well as exposing your metrics in a time series format that prometheus can scrape.
+    - libraries implement the prometheus metric types: counter, gauge, histogram, summary
+  - Default metrics:
+    - default metrics recommended by prometheus are collected
+    - in addition, nodejs specific metrics are included
+  - Counter:
+    - a cumulative metric whose value can only increase ; resets to zero when the process restarts
+  - histogram:
+    - samples observations and counts them in configurable buckets
+    - tracks sizes and frequeny of events
+  - build the docker image: (create a repo in dockerhub)
+    - `docker build -t phyllisn/nodejs-app:nodeapp .`
+    - `docker push phyllisn/nodejs-app:nodeapp`
+  - deploy nodeapp into k8s cluster:
+    - because this image is coming from a pricate repo, we need to create a docker-login secret for kubernetes
+    - to get docker registry info: `docker info` (grab the registry url)
+    - `kubectl create secret docker-registry my-registry-key --docker-server=https://index.docker.io/v1/ --docker-username=phyllisn --docker-password=xxxxxx`
+    - integrate the secret in the k8s-config.yaml file with `imagePullSecrets`
+- apply deployment:

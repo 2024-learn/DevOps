@@ -352,4 +352,3 @@
   - roles allow you to structure complax ansible project with lots of playbooks, tasks to be more manageable. you can group your content in roles so you breakup large palybooks into smaller manageable files.
   - they are like a package for your tasks in a play
   - variable precedence in ansible: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable>
-
