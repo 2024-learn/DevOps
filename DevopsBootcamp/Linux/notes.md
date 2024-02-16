@@ -379,6 +379,7 @@ __OS Tasks:__
 | -le       | checks if left operand is less or equal to the right          |
 
 - __string operators__
+  
 | Operator  | Description                                                                       |
 | --------- |-----------------------------------------------------------------------------------|
 | ==        | checks if the value of 2 operands are equal or not. if yes; true                  |
