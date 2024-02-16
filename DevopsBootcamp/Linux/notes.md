@@ -598,8 +598,9 @@ func_name
   
 - __Domain Name Service (DNS):__
   - ref: <https://www.cloudflare.com/learning/dns/glossary/dns-root-server/>
-  - Humans are better at remembering words and names instead of numbers. Hence, the concept of mapping IP address to names was introduced
+  - Humans are better at remembering words and names instead of numbers.
   - However, the computer does not understand names, it understands numbers and IP addresses.
+  - Hence, the concept of mapping IP address to names was introduced
   - Under the hood, that name is translated into an IP address that the application is running on which your computer can send the request to. The service that does this translation of domain names into IP addresses is __DNS__.
 - __How does DNS manage all these IP addresses?__
   - ![DNS](https://mykbhome.files.wordpress.com/2019/07/image-2.png)
