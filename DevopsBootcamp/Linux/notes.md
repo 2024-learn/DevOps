@@ -83,7 +83,7 @@ __OS Tasks:__
   - difference between /usr/local and /opt is that there are some applications that do not split their code or their
      files in different directories.
     - /usr/local is for programs that split its components
-    - /opt os for programs that do not split their components
+    - /opt is for programs that do not split their components
   - also available to all users on the computer
 - boot
   - contains files required for booting the system. Should not be modified
@@ -243,7 +243,7 @@ __OS Tasks:__
     - to avoid that use `-aG` to append to the list
     - e.g. `sudo usermod -aG admin,devops,it phyllis`
     - `sudo usermod -aG sudo phyllis`: adds phyllis to the sudoers group
-- `sudo deluser <username>` or `sudo deluser <username>`: delete user
+- `sudo deluser <username>` or `sudo userdel <username>`: delete user
 - `sudo groupdel <groupname>` or `sudo delgroup <groupname>`: delete group
 - `groups`: displays the groups that the currently logged in user belongs to
 - `groups <username`:  display the specified user's groups
@@ -412,7 +412,7 @@ __OS Tasks:__
      ```while loop
      while condition
      do
-       statement(s) to be executes if command is true
+       statement(s) to be executed if command is true
      done
      ```
 
@@ -496,23 +496,23 @@ func_name
 - deleting env. vars:
   - `unset <env. var name>`
   - `unset DB_NAME`
-- Persisting env. vars
-- __Shell specific configuration file__
-  - per-user shell configuration files
-    - e.g. if you are using Bash, you can declare the variables in the ~/.bashrc file
-  - variables set in this file are loaded whenever a bash login shell is entered
-    - in zsh it is ~/.zshrc
-  - after adding the variables, source the file to reload the system to load and recognize environment variables you just entered,.
-    - `source ~/.zshrc` or `source ~/.bashrc` ...
-- __System wide for all users:__
-  - in /etc/environment
-  - PATH environment variable:
-    - list of directories to executable files, separated by `;`
-    - Tells the shell which directories to search in for the executable in response to our executed command
-    - ref:
-      - <https://www.tecmint.com/set-unset-environment-variables-in-linux/>
-      - <https://www.freecodecamp.org/news/how-to-set-an-environment-variable-in-linux/>
-      - <https://www.cyberciti.biz/faq/set-environment-variable-linux/>
+- __Persisting env. vars__
+  - __Shell specific configuration file__
+    - per-user shell configuration files
+      - e.g. if you are using Bash, you can declare the variables in the ~/.bashrc file
+    - variables set in this file are loaded whenever a bash login shell is entered
+      - in zsh it is ~/.zshrc
+    - after adding the variables, source the file to reload the system to load and recognize environment variables you just entered,.
+      - `source ~/.zshrc` or `source ~/.bashrc` ...
+  - __System wide for all users:__
+    - in /etc/environment
+    - PATH environment variable:
+      - list of directories to executable files, separated by `;`
+      - Tells the shell which directories to search in for the executable in response to our executed command
+      - ref:
+        - <https://www.tecmint.com/set-unset-environment-variables-in-linux/>
+        - <https://www.freecodecamp.org/news/how-to-set-an-environment-variable-in-linux/>
+        - <https://www.cyberciti.biz/faq/set-environment-variable-linux/>
 
 - __Networking__
 - __LAN, Switch Router, WAN, Gateway__
@@ -532,23 +532,23 @@ func_name
   - Allows networked devices to access the internet
 - __gateway:__
   - This is the IP address of the router
-- __subnet:__
+- __subnet:__ <https://docs.netgate.com/pfsense/en/latest/network/cidr.html>
   - When a device sends communication to another device on the LAN, how does it know whether the device is within or outside the LAN?
     - it knows because of the IP address of the target device
-  - Devices in the LAN belong to the same IP address range
+    - Devices in the LAN belong to the same IP address range
   - __subnet__ is a logical subdivision of an IP network
   - __subnetting__ is the process of dividing a network into two or more networks
   - __subnet mask__ dictates how many bits are fixed
   - 1 octet/IP block = 8 bits
   - Subnet sets the IP range
     - Example of IP address range:
-    - 192.168.0.x: IP address (starting point)
-    - 255.255.255.0: subnet mask
-    - All IP addresses starting with 192.168.0.x belong to the same LAN
+      - 192.168.0.x: IP address (starting point)
+        - 255.255.255.0: subnet mask
+        - All IP addresses starting with 192.168.0.x belong to the same LAN
 
-    - 192.168.x.x: IP address
-    - 255.255.0.0: subnet mask
-    - All IP addresses starting with 192.168.x.x belong to the same LAN
+      - 192.168.x.x: IP address
+        - 255.255.0.0: subnet mask
+        - All IP addresses starting with 192.168.x.x belong to the same LAN
   - 255.255.0.0 - means that 16 bits are fixed
   - 255.255.255.0 - means 24 bits are fixed
   - value 255 fixates the Octet
@@ -557,7 +557,7 @@ func_name
 - __address ranges:__
   - | starting IP   | subnet mask       | last IP address   |
     |---------------|-------------------|-------------------|
-    | 192.168.0.0   | 255.255.255.0     | 196.168.0.255     |
+    | 192.168.0.0   | 255.255.255.0     | 192.168.0.255     |
     | 192.168.0.0   | 255.255.0.0       | 192.168.255.255   |
 - __CIDR block:__
   - CIDR = Classless Inter-Domain Routing
@@ -576,14 +576,14 @@ func_name
   - Any device needs three pieces of data for communication: IP address, subnet, gateway.
 - __Network Address Translation:__
   - How to make sure IP addresses do not overlap from one LAN to another?
-  - IP addresses within LAN are not visible to the outside network or internet
-  - e.g. when interacting with social media, your device's private IP address does not reach the router. it is replaced by the router's IP address
+    - IP addresses within LAN are not visible to the outside network or internet
+      - e.g. when interacting with social media, your device's private IP address does not reach the router. it is replaced by the router's IP address
   - __NAT:__ This is the key functionality of a router
   - __Benefits of NAT:__
     - Security and protection of devices within the LAN
     - Reuse IP addresses without conflicting with each other. So, 2 LANS can have the same IP address range within their LAN because they basically will not know about each other, hence no conflict.
 - There are a limited number of IPv4 addresses:
-  - 4,294,967,296 : 256*256*256*256
+  - 4,294,967,296 : 256 x 256 x 256 x 256
 - __Firewall:__
   - By default, a server is not accessible from outside the LAN
   - __firewall__ is a set of rules that protect a network from unauthorized access
@@ -592,7 +592,7 @@ func_name
     - every device has a set of ports. You can allow specific ports and IP addresses.
     - different applications listen on specific ports
     - there are default or standard ports on many applications
-    - e.g web apps on port 80, mongodb on 27017, mysql 0n 3306, postgresQL on 5432...etc.
+    - e.g web apps on port 80, mongodb on 27017, mysql on 3306, postgresQL on 5432...etc.
     - You need a port for every application. and each port is unique in a device, so you cannot have two applications listening on the same port
   - So, firewall allows device IP address at port to be accessed. This is also known as __port forwarding configuration__
   
@@ -603,12 +603,12 @@ func_name
   - Hence, the concept of mapping IP address to names was introduced
   - Under the hood, that name is translated into an IP address that the application is running on which your computer can send the request to. The service that does this translation of domain names into IP addresses is __DNS__.
 - __How does DNS manage all these IP addresses?__
-  - ![DNS](https://mykbhome.files.wordpress.com/2019/07/image-2.png)
-  - DNS uses a simple policy of dividing all these names into different domains or groups
+  ![DNS](https://mykbhome.files.wordpress.com/2019/07/image-2.png)
+- DNS uses a simple policy of dividing all these names into different domains or groups
   - Domain names follow a hierarchical structure.
   - __Root Domains `.`:__ ref: <https://www.iana.org/domains/root/servers>
   - Root servers are DNS nameservers that operate in the root zone. These servers can directly answer queries for records stored or cached within the root zone.
-  - ![list of root servers](https://mykbhome.files.wordpress.com/2019/07/image-4.png)
+    ![list of root servers](https://mykbhome.files.wordpress.com/2019/07/image-4.png)
   - __Top Level Domains:__
     - there are 6 original TLDs: .mil, .edu, .com, .org, .net, .gov
     - there are also geographical domains that were added later. eg. .at, .fr, .uk, .us, .ke, .za,
@@ -630,7 +630,7 @@ func_name
   - __How does DNS resolution work?__
     - Every computer has a DNS client preinstalled. when you type in <www.thatwebsite.com>, your OS makes a DNS query asking DNS to resolve that address to an IP address or find the IP address that maps to thatwebsite.com.
     - the DNS request first goes to the recursive name server which is typically operated by your Internet Service provider.
-    - the cursive name server might have the IP address already stored. if it doesn't, then it will go to one of the 13 root servers which manage requests for top level domains.
+    - the recursive name server might have the IP address already stored. if it doesn't, then it will go to one of the 13 root servers which manage requests for top level domains.
       - these root servers are redundantly available all over the world to make getting responses quicker.
       - the root server will then look at the address and see .com; it sends a response back to the resolver with the address of the top-level domain server.
       - the resolver then asks the .com __top-level domain server__
@@ -651,38 +651,37 @@ func_name
     - or you can also do a reverse check with `nslookup` command to show what domain name is attached to a specific IP address.
   - `ping`: basically checks whether a service or application is accessible
     - uses the ICMP protocol. Note: if the application is not pingable, it is not necessarily that the app is down/unavailable but that ICMP has been blocked by the firewall, likely for security reasons
- __SSH (Secure Shell)__ ref: <https://www.atlassian.com/git/tutorials/git-ssh>
--
-- SSH is a network protocol that gives users a secure way to access a computer over the internet
-- SSH refers also to the suite of utilities that implement that protocol
-- SSH authentication comes after the connection
-  - firewall and port: 22
-    - source: who can access the port?
-    - SSH is powerful and needs to be restricted to specific IP addresses
-  - generate ssh key pair:
-    - Before adding the new SSH key to the ssh-agent first ensure the ssh-agent is running by executing:
-      - `eval "$(ssh-agent -s)"`
-    - by default stored under `~/.ssh` folder
-    - `ssh-keygen -t rsa -b 4096 -C "youremail.example.com`
-      - `t`: type (of encryption) flag
-      - `rsa`: the cryptographic algorithm that is going to be used to encrypt the keys
-      - the command will create a new SSH key using the email as a label
-    - you can now view the key: `cat ~/.ssh/id_rsa` for private key and `cat ~/.ssh/id_rsa.pub` for public key
-    - You can now add the public key you generated on your machine in the remote server in ~/.ssh/authorized_keys
-    - __known_hosts__: lets the client authenticate the server to check that it isn't connecting to an impersonator
-    - __authorized_keys__: lets the server authenticate the user
-      - careate a new user:
-        - `sudo adduser phyllis`: creates new user phyllis
-        - `sudo usermod -aG sudo phyllis`: adds user phyllis to sudoers group
-      - on the local machine generate keys with `ssh-keygen`
-        - copy the pub key: `cat ~/.ssh/id_rsa.pub`
-      - on the server in the home of the user:
-        - `mkdir ~/.ssh`
-        - `touch authorized_keys`
-        - vim ~/.ssh/authorized_keys and paste the public key
-      - now on the host machine you can ssh into the machine as `ssh phyllis@<public ip of the remote server>`
-    - `scp`__secure copy__: Allows you to securely copy files and directories
-      - secure, meaning files and password are encrypted
-      - `scp test.sh root@IP address:/destination`
-      - if the key is not in the default location or differently named:
-        - `scp -i ssh/id_rsa test.sh root@IPaddress:/destination folder`
+- __SSH (Secure Shell)__ ref: <https://www.atlassian.com/git/tutorials/git-ssh>
+  - SSH is a network protocol that gives users a secure way to access a computer over the internet
+  - SSH refers also to the suite of utilities that implement that protocol
+  - SSH authentication comes after the connection
+    - firewall and port: 22
+      - source: who can access the port?
+      - SSH is powerful and needs to be restricted to specific IP addresses
+    - generate ssh key pair:
+      - Before adding the new SSH key to the ssh-agent first ensure the ssh-agent is running by executing:
+        - `eval "$(ssh-agent -s)"`
+      - by default stored under `~/.ssh` folder
+      - `ssh-keygen -t rsa -b 4096 -C "youremail.example.com`
+        - `t`: type (of encryption) flag
+        - `rsa`: the cryptographic algorithm that is going to be used to encrypt the keys
+        - the command will create a new SSH key using the email as a label
+      - you can now view the key: `cat ~/.ssh/id_rsa` for private key and `cat ~/.ssh/id_rsa.pub` for public key
+      - You can now add the public key you generated on your machine in the remote server in ~/.ssh/authorized_keys
+      - __known_hosts__: lets the client authenticate the server to check that it isn't connecting to an impersonator
+      - __authorized_keys__: lets the server authenticate the user
+        - careate a new user:
+          - `sudo adduser phyllis`: creates new user phyllis
+          - `sudo usermod -aG sudo phyllis`: adds user phyllis to sudoers group
+        - on the local machine generate keys with `ssh-keygen`
+          - copy the pub key: `cat ~/.ssh/id_rsa.pub`
+        - on the server in the home of the user:
+          - `mkdir ~/.ssh`
+          - `touch authorized_keys`
+          - vim ~/.ssh/authorized_keys and paste the public key
+        - now on the host machine you can ssh into the machine as `ssh phyllis@<public ip of the remote server>`
+      - `scp`__secure copy__: Allows you to securely copy files and directories
+        - secure, meaning files and password are encrypted
+        - `scp test.sh root@IP address:/destination`
+        - if the key is not in the default location or differently named:
+          - `scp -i ssh/id_rsa test.sh root@IPaddress:/destination folder`
