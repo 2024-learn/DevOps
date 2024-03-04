@@ -1,7 +1,7 @@
 # Databases
 
 __Database Types:__
--   
+  
 - __Key Value Databases:__
   - examples: Redis, Memcached, etcd from Kubernetes
   - characteristics:
@@ -9,18 +9,18 @@ __Database Types:__
     - unique key
     - no joins
     - in-memory
-      - because they store data in memory instead of persisting it to the CPU, they are very fast when accessing the data. However, they cannot store much data for the same reason- limited storage. So they are not fit as a primary DB. Rather, they are used as a cache to enhance teh performance of a traditional DB
+      - because they store data in memory instead of persisting it to the CPU, they are very fast when accessing the data. However, they cannot store much data for the same reason- limited storage. So they are not fit as a primary DB. Rather, they are used as a cache to enhance the performance of a traditional DB
       - They can also be used as a message queue
 - __Wide Column Databases:__
   - examples: Cassandra, Apache HBase
-  - Key value DBs have a limited schema and a wide column database is a goog alternative
+  - Key value DBs have a limited schema and a wide column database is a good alternative
   - Characteristics:
     - A two-dimesional key-value store
     - Data is saved in tables, rows and columnes
     - Names and format can vary form row to row (schemaless)
     - Queries similar to SQL
   - Best for:
-    - Time- series data
+    - Time-series data
     - IoT records
     - historical records
   - advantage:
@@ -35,10 +35,10 @@ __Database Types:__
     - Data is stored in JSON like documents
     - Schema-less
     - No joins
-    - Denormalized- biffere chance of duplicating data
+    - Denormalized- bigger chance of duplicating data
   - Best for:
     - Mobile Apps, Game Apps, CMS, Most apps
-    - faster to read becasue data is already grouped into a collection of all related information into one document
+    - faster to read because data is already grouped into a collection of all related information into one document
     - easy to get started
     - act as a primary database
   - disadvantages:
@@ -63,12 +63,24 @@ __Database Types:__
       - CockroachDB looks to solve the sacalability issues of most SQL DBs
     - cannot be used for unstructured data
   - __ACID:(Atomicity, Consitency, Isolation and Durability)__
-    - refs:
-      - https://www.mongodb.com/basics/acid-transactions
-      - https://www.ibm.com/docs/en/cics-ts/5.4?topic=processing-acid-properties-transactions
-    - No half changes are updated in the DB
-    - either all changes get applied or NONE
-  - Because relational or SQL databases are so popuplar, we often talk about SQL vs. No-SQL, meaning all the other database types, which are schema-less
+  - In the context of transaction processing, the acronym ACID refers to the four key properties of a transaction: atomicity, consistency, isolation, and durability.
+  - __Atomicity__
+    - All changes to data are performed as if they are a single operation. That is, all the changes are performed, or none of them are.
+      - For example, in an application that transfers funds from one account to another, the atomicity property ensures that, if a debit is made successfully from one account, the corresponding credit is made to the other account.
+  - __Consistency__
+    - Data is in a consistent state when a transaction starts and when it ends.
+      - For example, in an application that transfers funds from one account to another, the consistency property ensures that the total value of funds in both the accounts is the same at the start and end of each transaction.
+  - __Isolation__
+    - The intermediate state of a transaction is invisible to other transactions. As a result, transactions that run concurrently appear to be serialized.
+      - For example, in an application that transfers funds from one account to another, the isolation property ensures that another transaction sees the transferred funds in one account or the other, but not in both, nor in neither.
+  - __Durability__
+    - After a transaction successfully completes, changes to data persist and are not undone, even in the event of a system failure.
+      - For example, in an application that transfers funds from one account to another, the durability property ensures that the changes made to each account will not be reversed.
+  - __refs:__
+    - <https://www.mongodb.com/basics/acid-transactions>
+    - <https://www.ibm.com/docs/en/cics-ts/5.4?topic=processing-acid-properties-transactions>
+  - No half changes are updated in the DB; either all changes get applied or NONE
+  - Because relational or SQL databases are so popular, we often talk about SQL vs. No-SQL, meaning all the other database types, which are schema-less
 - __Graph Databases:__
   - examples: Neo4j, DGraph
   - characteristics:
@@ -85,8 +97,9 @@ __Database Types:__
   - characteristics:
     - Dedicated to the search of data through massive entries
     - optimized for dealing with data
-    - Full-text search in efficient and fast way
-    - uses an index/createsan index of words. So instead of searching the whole database, it will only search the index
+    - Full-text search in an efficient and fast way
+    - uses an index/creates an index of words. So instead of searching the whole database, it will only search the index
     - similar to document-oriented database
   - Best for:
     - usage of indexes
+  
