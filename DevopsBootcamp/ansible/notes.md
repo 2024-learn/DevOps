@@ -151,7 +151,8 @@
       ├── ansible.cfg
       ├── hosts
       ├── notes.md
-      └── test.yaml```
+      └── test.yaml
+     ```
 
 - playbook:
   - ordered list of tasks
