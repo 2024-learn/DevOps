@@ -25,7 +25,7 @@
       - <https://jenkov.com/tutorials/maven/maven-commands.html>
       - <https://www.geeksforgeeks.org/maven-lifecycle-and-basic-maven-commands/>
     - uses xml
-    - `mvn package`:
+    - `mvn package`: builds a jar file with version from pom.xml
     - `mvn install`: installs dependencies, build the jar/war file and creates *target* file
     - dependencies are managed in *pom.xml*
     - Running the application:

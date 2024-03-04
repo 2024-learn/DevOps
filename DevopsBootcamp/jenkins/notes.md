@@ -1,18 +1,18 @@
 # Jenkins
+
 - __Install Jenkins:__
-  - 
   - Install Jenkins as a Docker container:
     - Create jenkins container with mounted docker
       - `docker run -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts`
       - port 8080 is the default port for Jenkins
       - port 50000 is where Kenkins and worker nodes communicate
-      - `-v` mounts the volume to `jenkins_home` 
+      - `-v` mounts the volume to `jenkins_home`
         - When we configure Jenkins, create users in Jenkins, create jobs to run different workloads, install plugins, etc. Jenkins will store these as data, which needs to be persisted.
         - jenkins_home-- not yet created but docker will create a physical path on the server (host) to store the data and we can reference it.
-        - we are going to attach that volume on the server to the container (/var/jenkins_home). 
+        - we are going to attach that volume on the server to the container (/var/jenkins_home).
           - So the data is initially written on the container path then replicated on the host.
       - jenkins/jenkins:lts it the official docker image
-  - Now you can access Jenkins from the browser: <IP>:8080
+  - Now you can access Jenkins from the browser: `<IP>:8080`
   - access Jenkins. the initial password is located at: `/var/jenkins_home/secrets/initialAdminPassword`inside the container.
     - `cat /var/jenkins_home/secrets/initialAdminPassword`
   - you can also access this password on the host since jenkins data is being replicated on the mount path we specified during the installation.
@@ -29,25 +29,23 @@
     - creating the actual jobs to run workflows
 
 - __Install Node on the container where Jenkins is running:__
-  - 
   - You can use plugins like with Maven. However, installing directly on the server gives you more flexibility because plugins only give you pre-configured options to work with.
   - The curl command used to install NodeJS on the Jenkins server is:
     - `curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh`
   - enter as root and complete docker installation
-      - `docker exec -u 0 -it <container ID> bash`
-        - -u flag: user
-        - 0: represents the root user
-      - to check the linux distribution information can be found at /etc/issue. This is helpful for making sure you install the right version of tools that are compatible with your container.
-        - `cat /etc/issue`
-      - `apt update`
-      - `apt install curl`
-      - `curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh`: installs node and npm
-        - `bash nodesource_setup.sh`: execute the script
-        - `apt install nodejs`
-        - `node -v ; npm -v`
+    - `docker exec -u 0 -it <container ID> bash`
+      - -u flag: user
+      - 0: represents the root user
+    - to check the linux distribution information can be found at /etc/issue. This is helpful for making sure you install the right version of tools that are compatible with your container.
+      - `cat /etc/issue`
+    - `apt update`
+    - `apt install curl`
+    - `curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh`: installs node and npm
+      - `bash nodesource_setup.sh`: execute the script
+      - `apt install nodejs`
+      - `node -v ; npm -v`
 
 - __Freestyle Job:__
-  - 
   - The most basic job type in jenkins
   - It is straightforward to setup and cinfigure. Suitable for simple, small scale projects
   - Not for use in production
@@ -60,7 +58,7 @@
   - first stop the old container: `docker stop <containerID>`
   - `docker run -p 8080:8080 -p 50000:50000 -d -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts`
   - `docker ps`
-- exec into the container as a root user: 
+- exec into the container as a root user:
   - `docker exec -u 0 -it 9e5ed2146193 bash`
   - install docker so it can execute inside the container:
     `curl https://get.docker.com/ > dockerinstall && chmod 777 dockerinstall && ./dockerinstall`
@@ -70,34 +68,38 @@
 - Now you can exit and log back in as Jenkins user. You should now run docker commands without issue
 
 - add docker username and password to Jenkins UI
-- then configure the credentials under: Build env.> Bindings(username and password(separated)).
-  - define the userrname variable and password variable you would like t use and then chose the credentials you provided earlier for docker hub
+- then configure the credentials under: Build env. > Bindings(username and password(separated)).
+  - define the username variable and password variable you would like to use and then choose the credentials you provided earlier for docker hub
 - execute shell
-```
-docker build -t jphyllisn/jma:jma-1.0 .
+
+```execute shell
+docker build -t phyllisn/jma:jma-1.0 .
 docker login -u $USERNAME -p $PASS
 docker push phyllisn/jma:jma-1.0
 ```
+
 - Change the docker login to a more secure practice, parse in the password as standard input:
 
-```
+```execute shell
 docker build -t phyllisn/jma:jma-1.1 .
 echo $PASS | docker login -u $USERNAME --password-stdin
 docker push phyllisn/jma:jma-1.1
 ```
+
 - __Pushing Docker Image from Jenkins to Nexus Repository:__
-  - 
-  - Because the Nexus repo is an http link, we have to configure the insecure registry in Jenkins as well: 
+  - Because the Nexus repo is an http link, we have to configure the insecure registry in Jenkins as well:
   - create `/etc/docker/daemon.json` file in the Docker host, not in the Jenkins container:
     - daemon.json file is a configuration file used by the Docker daemon to specify various settings to customize the behavior and functionality of the docker daemon according to your specific needs.
-    ```
+
+    ```configure insecure registry:
     {
     "insecure-registries":["<Nexus-server-ip>:8083"]
     }
     ```
+
   - restart docker to apply these changes
     - `sudo systemctl restart docker`
-    - this stops all the containers. 
+    - this stops all the containers.
     - restart the containers with the `docker start <containerID>` command
     - reconfigure the permission to the docker.sock file
       - `docker exec -u 0 -it <containerID> bash`
@@ -107,31 +109,33 @@ docker push phyllisn/jma:jma-1.1
     - then configure this in the java-maven-build job:
       - under bindings, choose the new nexus repo credentials
   - under execute shell tag the new image with the nexus repo:
-  ```
+
+  ```secure password pass-in
   docker build -t 15.222.250.136:8083/jma:1.2 .
   echo $PASS | docker login -u $USERNAME --password-stdin 15.222.250.136:8083
   docker push 15.222.250.136:8083/jma:1.2
   ```
+
 - __Pipeline:__
-  - 
 - __groovy sandbox:__
   - security feature that provides a restricted execution environment
   - you can execute a limited number of groovy functions, without needing approval from a Jenkins admin
 - __Differences between Scripted and Declarative pipelines:__
-  - Scripted:
+  - __Scripted:__
     - first syntax
     - groovy engine
     - advanced scripting capabilities,
       - high flexibility- no predefined structure
     - difficult to start
     - Starts with 'node'
-  - Declarative:
+  - __Declarative:__
     - more recent addition
     - easier to get started, but not that powerful
     - pre-defined structure
     - Starts with 'pipeline'
   - declarative pipeline syntax:
-  ```
+
+  ```declarative pipeline syntax:
   pipeline {
     agent any
       stages {
@@ -143,23 +147,21 @@ docker push phyllisn/jma:jma-1.1
       }
   }
   ```
+
 - __Jenkins Environmental Variables:__
-  -
-  - found at <Jenkins-server>:8080/env-vars.html
+  - found at `<Jenkins-server>:8080/env-vars.html`
 
 - __MultiBranch Pipeline:__
-  -
   - branch sources > behaviours > discover branches
   - branch-based logic for Multibranch pipeline:
 
 - __credentials in Jenkins:__
-  -
-  - "credentials plugin: Jenkins offers this plugin to store and manage credentials centrally
+  - "credentials plugin": Jenkins offers this plugin to store and manage credentials centrally
   - __scope:__
     - system(Jenkins and nodes only): credential is available only on the Jenkins server
       - not visible by or available for Jenkins Jobs
-      - use case: used by jenkins admins for configuring/intergrating Jenkins with other Services
-    - global(Jenkins, nodes, items, all child items, etc): accessible everyhere.
+      - use case: used by jenkins admins for configuring/integrating Jenkins with other Services
+    - global(Jenkins, nodes, items, all child items, etc): accessible everywhere.
     - project: credentials that are limited to your project.
       - Only in the multibranch pipeline
       - comes from the folder plugin
@@ -174,8 +176,7 @@ docker push phyllisn/jma:jma-1.1
     - ohter new types based on plugins ... e.g. github app
   - __ID:__ reference for your credentials
 - __Shared Library:__
-  -
-  - main folder is called vars. it icludes all the functions that we execute or call from the Jenkinsfile
+  - main folder is called __vars__. it includes all the functions that we execute or call from the Jenkinsfile
     - each function/execution step is its own groovy file inside the vars folder
   - src folder: helper code
     - where we can have any helper logic like utility code for the functions in the vars folder
@@ -197,12 +198,11 @@ docker push phyllisn/jma:jma-1.1
     - create an API token in gitlab (under profile > preferences> access tokens)then add that token in the jenkins credentials
   - configure Jenkins to build whenever there is a code change in gitlab
     - project > settings > integrations > jenkins
-  - for multi-branch, you need another plugin: mutlibranch scan webhook trigger
+  - for multi-branch, you need another plugin: multibranch scan webhook trigger
     - in gitlab, configure webhook:
       - settings > webhooks
 
 - __Dynamically Increment Application Version in Jenkins Pipeline:__
-  -
   - __incrementing maven (pom.xml)__
     - change the patch:
       - `mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}`
@@ -221,8 +221,6 @@ docker push phyllisn/jma:jma-1.1
       - configure multibranch pipeline
         - property strategy > build strategies > ignore committer stategy (jenkins email) > allow builds when a changeset contains non-ignored authors
 
-__References:__
-  - 
-  - https://docs.google.com/document/d/16b3bCnW_dv52KiN5PALDt2AY6dOUCk2dgndjsAeWte4/edit
-  - java-maven-app code source: 
-    - https://gitlab.com/twn-devops-bootcamp/latest/08-jenkins/java-maven-app.git
+- __References:__
+- <https://docs.google.com/document/d/16b3bCnW_dv52KiN5PALDt2AY6dOUCk2dgndjsAeWte4/edit>
+- java-maven-app code source: <https://gitlab.com/twn-devops-bootcamp/latest/08-jenkins/java-maven-app.git>
