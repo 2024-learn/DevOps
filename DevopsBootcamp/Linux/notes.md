@@ -670,7 +670,7 @@ func_name
       - You can now add the public key you generated on your machine in the remote server in ~/.ssh/authorized_keys
       - __known_hosts__: lets the client authenticate the server to check that it isn't connecting to an impersonator
       - __authorized_keys__: lets the server authenticate the user
-        - careate a new user:
+        - create a new user:
           - `sudo adduser phyllis`: creates new user phyllis
           - `sudo usermod -aG sudo phyllis`: adds user phyllis to sudoers group
         - on the local machine generate keys with `ssh-keygen`

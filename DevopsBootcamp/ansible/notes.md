@@ -4,12 +4,12 @@
   - execute tasks from your own machine
   - configuration/installation/deployment steps in a single Yaml file
   - reuse the same file multiple times and for different environments
-  - more reliable and lkely for errors
+  - more reliable and less likely for errors
   - Ansible is agentless. So there is no installation effort except on one machine to upgrade to a newer version of ansible or to deploy ansible on the rest of the machines.
     - it connects to the servers using SSH
 - Ansible works with modules (small programs that do the actual work).
   - each module is one small specific task
-  - module are granula and specific
+  - modules are granular and specific
     - which means that you need multiple modules in a certain sequence grouped together to represent one whole configuration or all the steps to deploy the application
     - modules also called "task plugins" <https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html>
 - ansible playbooks:
@@ -61,13 +61,13 @@
     - a playbook describes:
       - how and in which order
       - at what time and on which machines
-      - whay (the modules) should be executed
+      - what (the modules) should be executed
     - in other words, it orchestrates the module execution
 
 - Ansible tower: UI dashboard from Red Hat
   - centrally store automation tasks across teams
 - install ansible
-  - install python. Asnible is dependent on python
+  - install python. Ansible is dependent on python
   - installing python on Linux: <https://linuxtldr.com/installing-python/>
   - `brew install ansible` or `pip install ansible`
 - Ansible inventory file:
@@ -145,19 +145,22 @@
       ```
 
     - you can also create the .ansible.cfg in the ansible project directory as ansible.cfg(you can create it as a normal file here, not a hidden file)
-    .
-    ├── ansible.cfg
-    ├── hosts
-    ├── notes.md
-    └── test.yaml
-- playbook"
+
+     ```tree-structure
+      .
+      ├── ansible.cfg
+      ├── hosts
+      ├── notes.md
+      └── test.yaml```
+
+- playbook:
   - ordered list of tasks
   - plays and tasks run in order from top to bottom
   - written in YAML
-  - can have multiple plays(a group of tasks that you want to execute on sveral servers)
+  - can have multiple plays(a group of tasks that you want to execute on several servers)
 - executing a playbook:
   - `ansible-playbook -i hosts my-playbook.yaml`
-  - alternatively, in the ansible.cfg file yyou can configure the default inventory file with: `inventory = hosts` that way you c an run the command with the -i flag:
+  - alternatively, in the ansible.cfg file you can configure the default inventory file with: `inventory = hosts` that way you can run the command with the -i flag:
     - `ansible-playbook my-playbook.yaml`
 - "gather facts" module
   - automatically called by playbooks
@@ -176,9 +179,9 @@
 - ansible-galaxy:
   - Ansible Galaxy is a repository for Ansible Roles that are available to drop directly into your Playbooks to streamline your automation projects <https://www.redhat.com/sysadmin/ansible-galaxy-intro>
   - it is an online hub for finding and sharing ansible community content
-  - `ansible-galaxy` is a command -line utility to install individual collections
+  - `ansible-galaxy` is a command-line utility to install individual collections
     - `ansible-galaxy install <collection-name>`
-- `command`: lets you execute commands on a server just like you would execite them manually
+- `command`: lets you execute commands on a server just like you would execute them manually
 - `shell`: pretty much like command but shell executes command in the shell.
   - so the pipe operator `|`, redirect operators `>` or `<`, boolean operators `&&`, `||` and environment variables $HOME...etc that you have available in the shell, if you  need to use them, then you need to use the shell module.
   - `command` is more secure in terms of having these commands isolated and not running them directly through the shell, where as the shell module is more open to shell injection
@@ -236,7 +239,7 @@
     - passing in variables using the - vars attribute: in the yaml file
     - on the comand line using `--extra-vars` flag or `-e` flag and passing the variables as key=value pairs
     - external variables file
-      - the variables file uses yaml syntax, so you can use thte extension.yaml
+      - the variables file uses yaml syntax, so you can use the extension.yaml
   - naming of the variables:
     - not valid: python keywords like *async*, playbook keywords like *environment*, hyphens (linux-name), numbers only(12)
     - valid: letters, numbers, underscores
@@ -248,7 +251,7 @@
   - returns a list of files based on a specific criteria
   - for windows targets: `win_find` module
 - conditionals:
-  - exceute task depending on some condition
+  - execute task depending on some condition
   - `stat` module:
     - retrieve file or file system status
   - `when` applied to a single task
@@ -292,7 +295,7 @@
   - the more v's the more the verbosity
 - `docker-login` module
   - similar to "docker login" command
-  - authenticates with a docker registry and adds teh credential to your local Docker config file
+  - authenticates with a docker registry and adds the credential to your local Docker config file
 - interactive input: prompts
   - playbook prompts the user for a certain input
   - prompting the user for variables lets you avoid recording sensitive data like passwords. `vars_prompt`
@@ -341,7 +344,7 @@
   - install pip3, and then use pip3 to install boto3 and botocore
   - install awscli and configure credentials
   - __to convert an openssh key into an rsa format:__(acceptable format by jenkins)
-    - `ssh-keygen -p -f.ssh/id_rsa -m pem -P "" -N ""`
+    - `ssh-keygen -p -f .ssh/id_rsa -m pem -P "" -N ""`
   - on Jenkins UI: download ssh agent
   - add ansible key credentials: ssh username with private key
   - download plugin: ssh pipeline steps
@@ -349,6 +352,6 @@
 - __Ansible Roles__
   - <https://spacelift.io/blog/ansible-roles>
   - Roles let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. After you group your content into roles, you can easily reuse them and share them with other users.<https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html>
-  - roles allow you to structure complax ansible project with lots of playbooks, tasks to be more manageable. you can group your content in roles so you breakup large palybooks into smaller manageable files.
+  - roles allow you to structure complex ansible project with lots of playbooks, tasks to be more manageable. you can group your content in roles so you breakup large playbooks into smaller manageable files.
   - they are like a package for your tasks in a play
   - variable precedence in ansible: <https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable>
