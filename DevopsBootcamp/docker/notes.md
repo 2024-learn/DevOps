@@ -17,27 +17,27 @@
       - container is made up of layers of images, and a mostly linux base image(alpine), because of their small size
         - the advantage of the layers is that if you need to pull another container, e.g. a newer version of the postgres container, only the different layers are downloaded.
       - A Docker container is a self-contained, runnable software application or service
-      - containers are mutable and allow modificatins during runtime
+      - containers are mutable and allow modifications during runtime
       - A runtime instance; a self-contained software.
-      - created from an image. it is a running environemnt for an image or a running instance of an image
+      - created from an image. it is a running environment for an image or a running instance of an image
       - Read-only layers with an additional read-write layer on top.
       - when to use: To run the application.
 - __Docker Architecture__
   - When you install docker, you install a docker engine which is made up of three parts:
-    - __docker server:__ responsible fot pulling images, storing them, starting containers stopping containers, etc.
+    - __docker server:__ responsible for pulling images, storing them, starting containers, stopping containers, etc.
       - it has the following functionalities:
         - __container runtime:__ the part actually responsible for pulling images, maintaining container lifecycle
         - __volumes:__ responsible for persisiting data in containers
         - __network:__ responsible for configuring network for container communication
         - __build images:__ build own docker images
-    - __docker API:__ which is an APi for interacting with the docker server
+    - __docker API:__ which is an API for interacting with the docker server
     - __docker CLI:__ the command line interface of Docker to execute docker commands
   - There are other options for some of docker's functionalities. Container runtime tools like containerd and cri-o which you can use if you only need a container runtime on a server to run images, including docker images.
   - there also tools that allow you to build container images like Buildah
 
 - __Main Docker Commands:__
   - A container is a running environment for an image
-    - it contains a virtual file system, environemntal configurations and the aplication image
+    - it contains a virtual file system, environmental configurations and the aplication image
     - port binding: makes it possible to talk to application running inside the container
   - `docker pull <image>`: pulls image from remote repo
   - `docker images`: lists all images
@@ -81,7 +81,7 @@
   - to start the app:
     - `npm install`: to install the dependencies
     - `node server.js`: to start the application
-  - pull mongo and mong0-express images
+  - pull mongo and mongo-express images
     - mongo-express: mongo-express is a web-based MongoDB admin interface written in Node.js, Express.js, and Bootstrap3.
     - `docker pull mongo`
     - `docker pull mongo-express`
@@ -139,7 +139,7 @@
   - by default, docker compose sets up a single network for your app so you don't have to specify the network in the file
     - but you do have the option to specify your own networks with the top-level "networks" key
   - __service orchestration with docker compose:__
-    - spcecify dependencies and relationshis between service to ensure proper communication and required services are started in the correct order
+    - specify dependencies and relationships between service to ensure proper communication and required services are started in the correct order
     - `restart: always`: always restart the container if it stops
       - make sure MongoExpress can connect to MongoDB container, in case the mongo-express container was to be created before the mongodb container, it would keep restarting until the latter container was created and mongo-express can connect to it
     - `depends_on`:
@@ -148,7 +148,7 @@
   - `docker-compose -f docker-compose.yaml up`
   - data persistence with containers: data is lost on recreation
     - docker volumes: enables persisting data generated and used by docker containers
-- __dockerfile__
+- __Dockerfile__
   - blueprint for building images
   - It is a file containing a set of instructions to build a docker image
     - `FROM`: specifies the base image for the new image
@@ -182,7 +182,7 @@
   - __volume types:__
     - __host volumes:__
       - where we define the connection or the reference between the host directory and the container directory
-        - `docker run -v /home/mount/data:var/lb/mysql/data`
+        - `docker run -v /home/mount/data:var/lib/mysql/data`
       - you decide where on the host file system the reference is made
     - __anonymous volumes:__
       - create a volume just by referencing the container directory
@@ -190,14 +190,14 @@
       - the host directory where the volume should be mounted is not specified
       - for each container a folder is generated that gets mounted
     - __named volumes:__
-      - It is an impovement on anonymous volumes.
+      - It is an improvement on anonymous volumes.
         - `docker run -v name:/var/lib/mysql/data`
       - it specifies the name of the folder on the host file system
-      - unlike anonyous volumes, you can reference this volume by name
+      - unlike anonymous volumes, you can reference this volume by name
       - recommended for use in production
       - reference in a docker-compose:
 
-      ```volumes
+      ```named-volumes
       version: '3'
       services:
         mongodb:
@@ -288,20 +288,20 @@
   - __Use official docker images as base image__
 
   - __Use a specific image version not the "latest" that way you do not get different docker image versions which might break stuff.__
-  Fixate the version
+    - Fixate the version
 
   - __Use a lighter version of the base image like Alpine__
-  - images of full blown operating system distro might have more system utilities packaged, hence more tools but you do not need all that in a container. These images are heavier with more layers which beats the purpose of containerization which is light weight images.
+    - images of full blown operating system distro might have more system utilities packaged, hence more tools but you do not need all that in a container. These images are heavier with more layers which beats the purpose of containerization which is light weight images.
     - full blown operating system distro images also have higher vulnerability exposures
     - lighter images means less storage space and you can transfer (push, pull) images faster
     - if you do not require any specific utilities in the container, choose leaner and smaller official images
 
   - __Optimize caching image layers__
-  - Image layers: we create images using a dockerfile. each command creates a layer.
+    - Image layers: we create images using a dockerfile. each command creates a layer.
     - check docker layers in the image by:
       - `docker history my-app:1.4`
     - docker caches each layer, saved on the local file system. If nothing has changed in a layer (or any layers preceding it), it will be re-used from cache
-    - once a layer changes, all the following layers are recreated as well. in other words, when you change one line in the Dockerfile, caches of all the folllowing layers will be busted and invalidated, so ecah layer from that point will be rebuilt.
+    - once a layer changes, all the following layers are recreated as well. in other words, when you change one line in the Dockerfile, caches of all the following layers will be busted and invalidated, so each layer from that point will be rebuilt.
     - Order your commands in the Dockerfile from least to most frequently changing.
     - advantages of caching:
       - faster image building
@@ -317,10 +317,10 @@
       | entrypoint command          | CMD ["node", "src/index.js"]            |
 
   - __Do not include everything in the Dockerfile. Exclude autogenerated folders(like target, build), README files, node_modules, ... etc.__
-  - This helps to reduce the image size and prevent unintended secrets exposure
-    - use a .dockerignore file to explicitly exclude files and folders
-    - matching is done using Go's filepath.Match rules
-    - e.g. .dockerignore
+    - This helps to reduce the image size and prevent unintended secrets exposure
+      - use a .dockerignore file to explicitly exclude files and folders
+      - matching is done using Go's filepath.Match rules
+      - e.g. .dockerignore
 
       ```.dockerignore
       # ignore .git amd .cache folders
@@ -335,15 +335,15 @@
       ```
 
   - __You need to separate the "build" stage from the "runtime" stage by making use of multi-stage builds.__
-  - There are contents needed during the building of the image that are not needed in the final image to run the app, like test dependencies, development tools, build tools(package.json, pom.xml) that are used for specifying project dependencies and needed for installing dependencies.
-    - the multi-stage build feature allows you to use multiple temporary images during the build process and only keep the latest image as the final artifact
-    - e.g. Dockerfile with 2 build stages.
-      - you can name your stages with `AS <name>`
-      - 1st stage: build java app
-      - each FROM instruction starts a new build stage
-      - you can selectively copy artifacts from one stage to another.
-        - so here we are using files generated in the build stage to copy them in the final image.
-        - the final application image is created only in the last stage. All the files and tools used in the first (build) stage will be discarded once it's completed
+    - There are contents needed during the building of the image that are not needed in the final image to run the app, like test dependencies, development tools, build tools(package.json, pom.xml) that are used for specifying project dependencies and needed for installing dependencies.
+      - the multi-stage build feature allows you to use multiple temporary images during the build process and only keep the latest image as the final artifact
+      - e.g. Dockerfile with 2 build stages.
+        - you can name your stages with `AS <name>`
+        - 1st stage: build java app
+        - each FROM instruction starts a new build stage
+        - you can selectively copy artifacts from one stage to another.
+          - so here we are using files generated in the build stage to copy them in the final image.
+          - the final application image is created only in the last stage. All the files and tools used in the first (build) stage will be discarded once it's completed
 
       ```multi-build
       # Build stage
@@ -359,11 +359,11 @@
       ```
 
   - __Create a least priviledged OS User that will be used to start the application__
-  - by default, if you do not specify the user, Docker uses the root user.
-    - This is a bad security practice because when the container starts on the host, it could potentially have root access on the Docker host granting an attacker easier priviledge escalation.
-      - create a dedicated user and group in the docker image and don't forget to set required permissions
-      - change to non-root user with USER directive:
-      -e.g.:
+    - by default, if you do not specify the user, Docker uses the root user.
+      - This is a bad security practice because when the container starts on the host, it could potentially have root access on the Docker host granting an attacker easier priviledge escalation.
+        - create a dedicated user and group in the docker image and don't forget to set required permissions
+        - change to non-root user with USER directive:
+        -e.g.:
 
       ```priviledged user
       ...
@@ -392,14 +392,13 @@
       ```
 
   - __Scan the images for security vulnerabilities__
-  - Docker uses its own service for the vulnerability scan.
-    - Use Docker Scout:
-      - `docker scout cves myapp:1.4`
-    - In the background, docker used its own database of known vulnerabilities to run a can on the image.
-      - The database of known vulnerabilites gets constantly updated
+    - Docker uses its own service for the vulnerability scan.
+      - Use Docker Scout:
+        - `docker scout cves myapp:1.4`
+      - In the background, docker used its own database of known vulnerabilities to run a can on the image.
+        - The database of known vulnerabilites gets constantly updated
 
 - __References:__
-
   - MongoDB Docker Image: <https://hub.docker.com/_/mongo>
   - Mongo Express Docker Image: <https://hub.docker.com/_/mongo-express>
   - Docker compose installation guide:
