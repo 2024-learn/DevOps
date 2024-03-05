@@ -82,7 +82,7 @@
 - the secret has to be created before the deployment for it to be referenced in the deployment using `secretKeyRef`.
 
 - __ConfigMap:__
-  - configMap, just like secret has be created in the cluster before referencing it in a deployment
+  - configMap, just like secret, has to be created in the cluster before referencing it in a deployment
   - it is referenced as `configMapKeyRef` in the deployment file
 
 - Types of Service in Kubernetes: <https://kubernetes.io/docs/concepts/services-networking/service/>
@@ -204,7 +204,8 @@
           - This makes the app too tied to k8s api and inefficient because you will have to list the pods and their IP addresses everytime you want to connect to the pods
         - Option 2: DNS lookup
           - As an alternative, k8s allows the client to discover pod IP addresses through DNS lookups. When a client performs a DNS lookup for a service, the DNS server returns a single IP address which belongs to the service (clusterIP address).
-      - however, if you tell k8s that you do not need a cluster IP address of the service by setting the clusterIP field to none when creating a service, then the DNS server will return the pod IP addresses instead of the services IP address. And now the client can do a simple DNS lookup to get the IP address of the pods that are members of that service. and then the client can use that IP address to connect to the specific pod it want to talk to or all the pods.
+      - Option 3: Headless service:
+        - however, if you tell k8s that you do not need a cluster IP address of the service by setting the clusterIP field to none when creating a service, then the DNS server will return the pod IP addresses instead of the services IP address. And now the client can do a simple DNS lookup to get the IP address of the pods that are members of that service. and then the client can use that IP address to connect to the specific pod it want to talk to or all the pods.
 
       ```headless service
       apiVersion: v1
@@ -232,7 +233,7 @@
   - __LoadBalancer:__
     - service is made accessible externally through a cloud provider's load balancer functionality.
     - Whenever we create a load balancer service, nodeport and cluster Ip services are created automatically by k8s, to which the external load balancer of the cloud platform will route the traffic to.
-    - loadbalancer service is an extention of NodePort service
+    - loadbalancer service is an extension of NodePort service
     - nodeport service is an extension of clusterIp service
     - Difference between Load Balancer and Ingress: <https://www.baeldung.com/ops/kubernetes-ingress-vs-load-balancer#:~:text=While%20ingresses%20and%20load%20balancers,route%20to%20a%20single%20service.>
       - While ingresses and load balancers have a lot of overlap in functionality, they behave differently.
@@ -266,7 +267,7 @@
     - ingress:
 
     ```ingress.yaml
-    apiVersion: netwroking.k8s.io/v1
+    apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
       name: myapp-ingress
@@ -308,7 +309,7 @@
     - now you can access the kubernetes dashboard at dashboard.com
 - ingress default backend:
   - `kubectl describe ingress -n kubernetes-dashboard`
-  - whenever a request comes into the cluster that is not mapped to any backend,so there is no rule for mapping that request to a service, then this default backend is used to handle that request.
+  - whenever a request comes into the cluster that is not mapped to any backend, so there is no rule for mapping that request to a service, then this default backend is used to handle that request.
   - a good usage for that is to define custom error messages when a page isn't found, when a request comes in that the application cannot handle so that the user still sees a meaningful error message or a custom page where you can redirect them to your home page, etc.
 
   ```default backend
@@ -354,7 +355,7 @@
   ```
 
 - multiple sub-domains or domains:
-  - instead of one host and multiple paths, this one has multiple hosts with one path, where each host represents  a subdomain and inside each subdomain, there is one path that again redirects the requests to the service in question
+  - instead of one host and multiple paths, this one has multiple hosts with one path, where each host represents a subdomain and inside each subdomain, there is one path that again redirects the requests to the service in question
   - available at analytics.myapp.com and shopping.myapp.com
 
   ```multiple-subdomains.yaml
@@ -634,7 +635,7 @@ parameters:
 
 - code:
   - starting code: <https://gitlab.com/twn-devops-bootcamp/latest/10-kubernetes/configmap-and-secret-volume-types/-/tree/starting-code>
-  final code: <https://gitlab.com/twn-devops-bootcamp/latest/10-kubernetes/configmap-and-secret-volume-types>
+  - final code: <https://gitlab.com/twn-devops-bootcamp/latest/10-kubernetes/configmap-and-secret-volume-types>
   - `kubectl exec -it mosquitto-746f66ff55-kwh9g  -- /bin/sh`
   - overwrite the mosquitto.conf file using the configmap by mounting it into the container
   - configmap and secret must be created and exist before the pod starts in the cluster
@@ -793,7 +794,6 @@ parameters:
       --docker-server=https://137236605350.dkr.ecr.ca-central-1.amazonaws.com \
       --docker-username=AWS \
       --docker-password=<aws ecr get-login-password> \
-
       ```
 
     - configure deployment/pod: use secret using imagePullSecrets
@@ -935,13 +935,13 @@ parameters:
       - `kubectl auth can-i create deployments --namespace dev`
     - admins can also check permissions of other users
 
-- __How do microservices communicate:__
+- __How do microservices communicate?__
   - through interfaces or APIs: a code with functions inside the application itself is responsible for handling communication with other services
-  - through a third party message broker application. Instead of each service sending requests to all the others, all microservices talk to the message broker requesting them to forward a request to a certain microservice, creating less code complexity inside the microservices. popular 3rd party message brokers for microservices are Redis, rabbitMQ
-  - through a service mesh architecture, where instead of one central message broker that handles all the communication, each microservice has its own helper program(sideCar in k8s) that handles the communication for that specific microservice. example: Istio
+  - through a third party message broker application. Instead of each service sending requests to all the others, all microservices talk to the message broker requesting them to forward a request to a certain microservice, creating less code complexity inside the microservices. popular 3rd party message brokers for microservices are Redis, rabbitMQ, pub sub
+  - through a service mesh architecture, where instead of one central message broker that handles all the communication, each microservice has its own helper program(sidecar in k8s) that handles the communication for that specific microservice. example: Istio
   - __information you need from developers:__
     - what microservices you need to deploy
-    - which microservice is communication with what microservice
+    - which microservice is in communication with what microservice
     - how are the communicating? API calls, message broker or Service Mesh?
     - which db are they using? 3rd party services?
     - on which port each microservices runs/listens on
@@ -955,17 +955,18 @@ parameters:
   - remember to open the firewall on port 30007!
 
 - __Production and Security Best Practices:__
-  - specify a pinned(tag) version for container image for each microservice
-  - configure a liveness probe on each container
+  - __specify a pinned(tag) version for container image for each microservice__
+
+  - __configure a liveness probe on each container__
     - k8s knows to restart a pod when the pod dies. However, we need to let Kubernetes know what state the application that is running inside the container dies, or what state our application is in so that k8s can automatically restart the application.
     - performs health checks with Liveness probe
     - with *liveness probe* defined k8s will automatically restart the pod when the application is crashing or having an issue
     - liveness probe is a container attribute
     - define the attribute depending on what protocol the application uses to return the healthcheck info; http or tcpSocket, gRPC
-      - *tcpSocket*: kubelet makes probe connection at the node, not in the pod
+      - __*tcpSocket*:__ kubelet makes probe connection at the node, not in the pod
         - the kubelet will attempt to open a socket to your container on the port specified, where the application is running. If it succeeds to establish connection on that port, the container is considered to be healthy, so the application is running nad reachable. if it cannot establish that connection, then the application is considered to be failing. So the readiness or liveness probe will fail for the application
-        - we can execute *initialDelaySeconds* in case we know that the application takes longer to start. This tells kubelet to wait five seconds before performing the first liveness or readiness probe
-      - *HTTP probes*: kubelet sends a HTTP request to specificed path and port.
+        - we can execute __*initialDelaySeconds*__ in case we know that the application takes longer to start. This tells kubelet to wait five seconds before performing the first liveness or readiness probe
+      - __*HTTP probes*:__ kubelet sends a HTTP request to specificed path and port.
         - it checks the application health on a HTTP endpoint.
         - e.g. if the app has an endpoint inside the application that exposes the health status of the application itself, we could hit that endpoint to check whether the app is health or not
         - path: the URL of the health endpoint in the application,
@@ -978,10 +979,10 @@ parameters:
         periodSeconds: 5 # defines how often the endpoint of the app should be checked for its health. time in seconds
       ```
 
-  - Configure a readiness probe on each container
-    - k8s knows the pod state and the liveness probe helps k8s check that the application is also healthy/ or rather does health checks *after* the container is started.
+  - __Configure a readiness probe on each container__
+    - k8s knows the pod state and the liveness probe helps k8s check that the application is also healthy/ or rather does health checks __*after*__ the container is started.
     - How does k8s know that the app is fully initiated and started and ready to receive requests? This is where the readiness probe comes in.
-    - *Readiness Probe* helps kubernetes know that the application is ready to receive traffic
+    - __*Readiness Probe*__ helps kubernetes know that the application is ready to receive traffic
     - without the readiness probe, k8s assumes that the app is ready to receive traffic as soon as the container starts
     - both readiness and liveness probe check for application availability. Readiness probe does it during application startup and liveness probe does it when the application is running
 
@@ -992,33 +993,34 @@ parameters:
       periodSeconds: 5
     ```
 
-  - Configure resource requests for each container.
+  - __Configure resource requests for each container.__
     - there are two types of resources: CPU and Memory
     - Requests is what the container is guaranteed to get.
       - The scheduler uses this to figure out where to run the pods
       - best practice: keep CPU request at "1" or below.
       - cpu resources are defined in millicores=m
       - memory resources are defined in bytes. Mi=mebibytes
-  - Configure resource limits for each container.
-    - what happens if the application needs more resources than it has requested? e.g. when the application has too much data to load into memory or when you have a bug in the application which has an infinite loop that consumes all the CPU available on that node? In this case, the container will consume more than the requested resources and it can take all of the node's resources and cause it to crash, if it is not limited, or take all the resources from other pods on the same node, forcing them to be rescheduled.
+  - __Configure resource limits for each container.__
+    - what happens if the application needs more resources than it has requested? e.g. when the application has too much data to load into memory or when you have a bug in the application which has an infinite loop that consumes all the CPU available on that node?
+      - In this case, the container will consume more than the requested resources and it can take all of the node's resources and cause it to crash, if it is not limited, or take all the resources from other pods on the same node, forcing them to be rescheduled.
     - therefore, we need to make sure the container never goes above a certain value.
     - that container is only allowed to go up to the specified limit
     - __*To Note:*__ if you put values larger than your biggest node, your pod will never be scheduled
-  - Do not expose a NodePort!
+  - __Do not expose a NodePort!__
     - it exposes the cluster to a security risk because it opens a port on each worker node in the cluster where it can be directly accessed by external sources.
     - This creates multiple entry points in the cluster, hence increasing the attack surface.
     - the best practice is to only have internal services and only have one entry point to the cluster where all requests come in and ideally that entrypoint should be sitting outside the cluster on a separate server.
     - so instead of a nodeport, we can use a loadbalancer type which uses the platform/s load balancer to create an external single entrypoint for the cluster, which will then redirect the request to the cluster into the internal service which is responsible for that request.
     - as an alternative we can use an ingress and ingress controller to direct traffic to the internal services
-  - Configure more than 1 replica for Deployment.
+  - __Configure more than 1 replica for Deployment.__
     - when you do not configure the number of replicas, the replica is 1 by default
     - if 1 pod crashes, your application is not accessible until a new pod restarts. With more replicas, the application is always available; no downtime for users
-  - Configure more than 1 worker node in your cluster
+  - __Configure more than 1 worker node in your cluster__
     - this helps to avoid a single point of failure that is presented by only having one node.
     - there are several reasons for server unavailability:
       - server crashes, server reboots because of an update, server maintenance...etc.
     - if you have more than one node, then the workloads can be scheduled on another node
-  - Use labels for all resources
+  - __Use labels for all resources__
     - it is like giving custom identifiers to your components.
     - the labels should be meaningful and relevant to users
     - example use cases: group pods with labels, reference in service component
@@ -1048,12 +1050,13 @@ parameters:
         business-unit: "80432"
     ```
 
-  - Use namespaces to isolate your resources from each other
+  - __Use namespaces to isolate your resources from each other__
     - namespaces are also useful in defining access rights/privileges - roles and rolebinding
-  - Ensure that are the images that you are suing in your cluster are free of vulnerabilities
+  - __Ensure that are the images that you are using in your cluster are free of vulnerabilities__
     - this can happen if you are using base images, third-party libraries, or tools that have vulnerabilities
     - do manual vulnerability scans on images or in a build pipeline
-  - No root access for containers. Configure containers to use unprivileged users
+  - __No root access for containers.__
+    - Configure containers to use unprivileged users
     - example root access!:
 
     ```root access
@@ -1068,7 +1071,7 @@ parameters:
     - this exposes a security risk because a container with root access can access more resources and do more damage on the host where it's running.
       - with root access, attackers have access to host-level resources.
       - usually official images do not use root user but it is always a good practice to check whether the container is running as root/ operating in root user mode
-  - Update Kubernetes to the latest version.
+  - __Update Kubernetes to the latest version.__
     - Each version has important security fixes and general bug fixes
     - To update a k8s cluster, you do this node by node to avoid application and cluster downtime, which is why it's important to have multiple replicas and nodes
 
@@ -1129,7 +1132,7 @@ parameters:
     - when helm evaluates a chart, it sends all the template files that are defined in the templates directory through helm's template rendering engine.
     - engine then replaces the variables or placeholders in those template files with actual values from the values resources(default values file, user provided values file, or --set option)
   
-  - validating helm chart:
+  - __validating helm chart:__
     - `helm template -f <custom values file> <chart name>`: render chart templates locally and display the output
       - `helm template -f emailservice-values.yaml microsvc`
     - "helm lint" command
@@ -1138,7 +1141,7 @@ parameters:
         - WARNING: issues that break convention, or recommendations
         - `helm lint -f emailservice-values.yaml microsvc`
     - `helm install --dry-run`: checks generated manifest without installing the chart
-      - diffreence between --dry-run and template:
+      - __difference between --dry-run and template:__
         - --dry-run sends files to k8s cluster, while template only validates it locally
       - `helm install --dry-run -f values/redis-values.yaml redis-cart charts/redis`
   
@@ -1152,6 +1155,8 @@ parameters:
     - `mkdir charts ; mv microsvc charts/microsvc`
     - `cd charts`
     - `helm create redis`
+
+    ```helm file structure
     .
     ├── charts
     │   ├── microsvc
@@ -1180,6 +1185,7 @@ parameters:
         ├── recommendationservice-values.yaml
         ├── redis-values.yaml
         └── shippingservice-values.yaml
+    ```
 
     - `chmod u+x install.sh`
     - `./install.sh`
